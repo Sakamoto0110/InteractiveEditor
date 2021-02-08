@@ -159,7 +159,7 @@ namespace Editor
         public _IServiceProvider ServiceProvider => new IOBServiceProvider(this);
 
 
-        public IManipulatorService Manipulator => ServiceProvider.Request<ManipulatorService>();
+        public IManipulatorService Modify => ServiceProvider.Request<ManipulatorService>();
 
 
         public IBindingService Binder => ServiceProvider.Request<BindingService>();

@@ -1,5 +1,5 @@
 ﻿using Editor.Fields;
-using Editor.Services.ServiceProvider;
+using Editor.Services;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -43,7 +43,7 @@ namespace Editor.Services
                 // the controls. If so, create a new page
                 if (newY + actualPage.FieldHeight > actualPage.Size.Height - 35)
                 {
-                    actualPage.Manipulator.AddPage();
+                    actualPage.Modify.AddPage();
                     goto RECALC;                     
                 }                
                 actualPage.Fields.Add(new Fieldset(
@@ -222,7 +222,7 @@ namespace Editor.Services
             Owner.NextPage = InteractiveEditor.GeneratePage(Owner);           
 
             // PrevPage from NextPage setup            
-            btn = Owner.NextPage.Manipulator.EditMiscControl(MiscControl.PrevPage) as Button;
+            btn = Owner.NextPage.Modify.EditMiscControl(MiscControl.PrevPage) as Button;
             btn.Click += new EventHandler(Owner.NextPage.OnPageDown);
             Owner.NextPage.PrevPage = Owner;
         }
@@ -230,7 +230,7 @@ namespace Editor.Services
 
         public void PrependPage()
         {
-            PageLocator.LocateLast().Manipulator.RemovePage();
+            PageLocator.LocateLast().Modify.RemovePage();
         }
 
 

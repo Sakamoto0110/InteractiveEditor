@@ -1,5 +1,5 @@
 ﻿using Editor.Events;
-using Editor.Services.ServiceProvider;
+using Editor.Services;
 using System;
 using System.Reflection;
 using static Editor.Modifiers;
