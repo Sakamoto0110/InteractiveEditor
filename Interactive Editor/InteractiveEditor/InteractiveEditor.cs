@@ -159,6 +159,12 @@ namespace Editor
         public _IServiceProvider ServiceProvider => new IOBServiceProvider(this);
 
 
+        public FieldLocatorService LocateField => ServiceProvider.Request<FieldLocatorService>();
+
+
+        public PageLocatorService LocatePage => ServiceProvider.Request<PageLocatorService>();
+
+
         public IManipulatorService Modify => ServiceProvider.Request<ManipulatorService>();
 
 
@@ -206,7 +212,7 @@ namespace Editor
 
 
 
-        protected bool _Visible = true;
+        protected bool _Visible = false;
         protected bool _ShowText = true;
         protected bool _AutoSize = true;
         protected int _Horizontal_Spacing = defaultHSpacing;

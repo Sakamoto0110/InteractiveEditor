@@ -75,7 +75,7 @@ namespace Editor.Services
 
         public Fieldset LocateName(string targetName)
         {
-            if ((Provider.Bytes[0] ^ 0x01) == 0)
+            if (targetName is null)
             {
                 foreach (Fieldset field in Provider.Request<FieldLocatorService>().GetEnumeratorEx())
                     if (targetName.Equals(field.Name))

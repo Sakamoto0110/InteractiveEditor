@@ -16,19 +16,19 @@ namespace Editor.Services
         void AddField<U>(string fieldName, FieldFlags flags = FieldFlags.None);
 
 
-        Control EditField(string key, bool GetPanel = false);
+        Control EditField(string key = null, bool GetPanel = false);
 
 
-        Label EditFieldLabel(string key, string newLabel);
+        Label EditFieldLabel(string key = null);
 
 
         void ToggleFieldVisible(string key, bool newVal);
         
 
-        void SetDeltaMultiplier(string key, double value);
+        void SetDeltaMultiplier(string key = null, double value = 1);
         
 
-        void SetTrackBarMultiplier(string key, double value);
+        void SetHSliderMultiplier(string key = null, double value = 1);
 
 
         void SetFieldValue(string key, object value);

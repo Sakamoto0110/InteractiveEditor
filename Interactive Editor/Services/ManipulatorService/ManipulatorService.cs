@@ -70,20 +70,20 @@ namespace Editor.Services
         }
 
 
-        public Control EditField(string key, bool GetPanel = false)
+        public Control EditField(string key = null, bool GetPanel = false)
         {
             var target = key is null ? FieldLocator.LocateLast() : FieldLocator.LocateName(key);
             return target?.Field;
         }
 
 
-        public Label EditFieldLabel(string key, string newLabel)
+        public Label EditFieldLabel(string key = null)
         {            
             return (key is null ? FieldLocator.LocateLast() : FieldLocator.LocateName(key))?.Label;
         }
 
 
-        public void SetDeltaMultiplier(string key, double value)
+        public void SetDeltaMultiplier(string key = null, double value = 1)
         {
             var target = key is null ? FieldLocator.LocateLast() : FieldLocator.LocateName(key);
             if (target != null)
@@ -91,7 +91,7 @@ namespace Editor.Services
         }
 
 
-        public void SetTrackBarMultiplier(string key, double value)
+        public void SetHSliderMultiplier(string key = null, double value = 1)
         {
             var target = key is null ? FieldLocator.LocateLast() : FieldLocator.LocateName(key);
             if (target != null)

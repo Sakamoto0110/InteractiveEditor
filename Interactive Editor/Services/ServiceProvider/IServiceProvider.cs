@@ -23,7 +23,7 @@ namespace Editor.Services
                 if(_parms == null)                
                     _parms = new byte[4]
                     {
-                        0x0, // Long Querries -> 0x01
+                        0x1, // Long Querries -> 0x01
                         0x0,
                         0x0,
                         0x0,

@@ -61,8 +61,17 @@ namespace Editor.Services
                 Console.WriteLine("Failed to bind: " + varName);
                 return;
             }
-            var field = Provider.Request<FieldLocatorService>().LocateName(key);
-            field?.BindToField(Owner.T, varName, f, capParms);
+            if(key is null)
+            {
+                var field = Provider.Request<FieldLocatorService>().LocateLast();
+                field?.BindToField(Owner.T, varName, f, capParms);
+            }
+            else
+            {
+                var field = Provider.Request<FieldLocatorService>().LocateName(key);
+                field?.BindToField(Owner.T, varName, f, capParms);
+            }
+            
 
         }
 
