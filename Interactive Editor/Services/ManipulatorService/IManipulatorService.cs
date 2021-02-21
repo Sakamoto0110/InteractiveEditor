@@ -10,25 +10,34 @@ namespace Editor.Services
 {
     public interface IManipulatorService
     {
-      
+
         #region Fields
+        
+        void AddField(Type U, string fieldName, FieldFlags flags = FieldFlags.None);
 
         void AddField<U>(string fieldName, FieldFlags flags = FieldFlags.None);
 
-
-        Control EditField(string key = null, bool GetPanel = false);
+        /// <summary>
+        /// Used for get specific fields
+        /// </summary>
+        /// <param name="key">
+        /// Is the <b>name</b> of the <b>Fieldset</b>
+        /// </param>        
+        /// <returns>The Control that is storing the value </returns>
+        /// <remarks>If the key is null or empty, will return the last created field.</remarks>
+        Control EditField(string key = null);
 
 
         Label EditFieldLabel(string key = null);
 
 
-        void ToggleFieldVisible(string key, bool newVal);
+        void ToggleFieldVisible(bool newVal, string key = null);
         
 
-        void SetDeltaMultiplier(string key = null, double value = 1);
+        void SetDeltaMultiplier(double value,string key = null);
         
 
-        void SetHSliderMultiplier(string key = null, double value = 1);
+        void SetHSliderMultiplier(double value, string key = null);
 
 
         void SetFieldValue(string key, object value);

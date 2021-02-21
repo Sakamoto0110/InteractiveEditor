@@ -14,6 +14,9 @@ namespace Editor.Fields
     public class Fieldset 
     {
 
+        public List<FieldInfo> GroupFieldInfo = new List<FieldInfo>();
+
+
         public readonly string Name = "default";
         public string LabelText = "";
         protected Point _AnchorPoint = new Point(0, 0);
@@ -70,6 +73,7 @@ namespace Editor.Fields
         public FieldInfo FieldInfo;
         public string FieldName;
         public bool AllowBind = true;
+        public bool ValidBind;
         //
         // Unique bind properties
         //
@@ -117,6 +121,7 @@ namespace Editor.Fields
             LabelText = Name;
             AnchorPoint = new Point(_x, _y);
             FFlags = flags;
+
             Initialize(U);
         }
 
@@ -157,6 +162,7 @@ namespace Editor.Fields
             if (type == typeof(ComboBox)) ComboBoxInit();
             if (type == typeof(TrackBar)) TrackBarInit();
             if (type == typeof(Button)) ButtonInit();
+            if (type == typeof(Separator)) SeparatorInit();
             //
             // Field Generic properties ( Control properties )
             //                             
@@ -199,6 +205,10 @@ namespace Editor.Fields
             {
                 Field = new TrackBar();
                 Field.Cursor = FFlags.HasFlag(FieldFlags.UseHandCursorField) ? Cursors.Hand : Cursors.Default;
+            }
+            void SeparatorInit()
+            {
+                Field = new Separator();
             }
         }
 
@@ -322,8 +332,36 @@ namespace Editor.Fields
 
 
 
+            // problem: searching the variable name of a nested object in the core object
+            int depth = GroupFieldInfo.Count-1;
+            TRY_AGAIN:
             FieldInfo = instance.GetType().GetField(FieldName, BindingFlags.Public | BindingFlags.Instance);
-            FieldData = FieldInfo.GetValue(TargetInstance);
+            if (FieldInfo is null)
+            {
+                if (GroupFieldInfo[depth].FieldType.IsClass)
+                {
+                    FieldInfo temp = null;
+                    for(int i = 0; i < GroupFieldInfo.Count; i++)
+                    {
+                        temp = instance.GetType().GetField(GroupFieldInfo[i].Name);
+                        if (temp != null)
+                            break;
+                    }
+                    
+                    if(temp != null)
+                        instance = temp.GetValue(instance);
+                    
+                    if(depth > 0)                    
+                        depth--;
+                        
+                    
+                    goto TRY_AGAIN;
+                }
+
+            }
+
+            
+            FieldData = FieldInfo.GetValue(instance);
 
             var FieldBinderArgs = new FieldBinderEventArgs();
             FieldBinderArgs.FieldInfo = FieldInfo;
@@ -359,20 +397,32 @@ namespace Editor.Fields
             Type dT = FieldData.GetType();
             Field.BackColor = dT == typeof(Color) ? Color.FromArgb(255, (Color)FieldData) : Control.DefaultBackColor;
             Field.ForeColor = dT == typeof(Color) ? Color.FromArgb(255, (Color)FieldData) : Control.DefaultForeColor;
-            switch (Field)
+            try
             {
-                case TextBox textBox:
-                    textBox.Text = $"{FieldData}";
-                    textBox.TextChanged += ValueChanged;
-                    break;
-                case ComboBox comboBox:
-                    comboBox.SelectedItem = FieldData;
-                    comboBox.SelectedIndexChanged += ValueChanged;
-                    break;
-                case TrackBar trackBar:
-                    trackBar.Value = (int)Convert.ToInt32(Convert.ToDouble(FieldData) * TrackBarMultiplier);
-                    trackBar.ValueChanged += ValueChanged;
-                    break;
+                switch (Field)
+                {
+                    case TextBox textBox:
+                        textBox.Text = $"{FieldData}";
+                        textBox.TextChanged += ValueChanged;
+                        break;
+                    case ComboBox comboBox:
+                        comboBox.SelectedItem = FieldData;
+                        comboBox.SelectedIndexChanged += ValueChanged;
+                        break;
+                    case TrackBar trackBar:
+                        trackBar.Value = (int)Convert.ToInt32(Convert.ToDouble(FieldData) * TrackBarMultiplier);
+                        trackBar.ValueChanged += ValueChanged;
+                        break;
+                }
+            }catch(Exception ex)
+            {
+                Logger.DoLog(this, $"Unable to pull the instance values to the field, maybe there is a miss configuration:\n" +
+                            $"{{\n" +
+                            $"Editor:   {this.Owner.Name} \n" +
+                            $"Fieldset: {this.Name}       \n" +
+                            $"Control:  {this.Field}      \n" +
+                            $"}}");
+                Logger.DoLog(this, $"{ex.Message}\n");
             }
             FieldBindFinished?.Invoke(this, FieldBinderArgs);
         }

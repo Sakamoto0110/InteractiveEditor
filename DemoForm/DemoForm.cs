@@ -11,136 +11,138 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using Editor;
 using Editor.Fields;
+using Editor.Misc;
 using Editor.Services;
-using Editor.Services.LocatorService;
+using MyEditorControl.TestObjects;
+using static Editor.Services.BindingService;
 
 namespace MyEditorControl
 {
     public partial class DemoForm : Form
     {
         public InteractiveEditor Editor;
-        public Foo MyFoo;
-        public Foo MyFoo2;
-        public Foo MyFoo3;
-        public Foo MyFoo4;
+        public List<string> CommandHistory = new List<string>();
+        public int CommandIndex = 0;
+
+        public Foo MyFoo = new Foo(380, 50, 50, 50);
+
+        public static readonly string[] ComList = new string[]
+        {
+            "select",
+            "multiselect"
+        };
+        public Dictionary<string, Action> EXECUTE_T0;
+       
+        public void Init_EXECUTE_T0()
+        {
+            EXECUTE_T0 = new Dictionary<string, Action>()
+            {
+                {"select", SelectFoo0 }
+            };
+        }
+        public void SelectFoo0()
+        {
+            Console.WriteLine("SelectFoo0 called");
+            Editor.Binder.BindToObject(MyFoo);
+        }
+        void init()
+        {
+            textBox1.AutoCompleteMode = AutoCompleteMode.SuggestAppend;
+            textBox1.AutoCompleteSource = AutoCompleteSource.CustomSource;
+            textBox1.AutoCompleteCustomSource = new AutoCompleteStringCollection();
+            textBox1.AutoCompleteCustomSource.AddRange(ComList);
+            this.Size = new Size(480,480);
+            this.Paint += Form1_Paint;
+            this.DoubleBuffered = true;
+        }
         public DemoForm()
         {
-            
-            MyFoo = new Foo(360 - 25, 360 - 25,50,50);
-            MyFoo2 = new Foo(200+360 - 25, 360 - 25, 50, 50);
-            MyFoo3 = new Foo(200 + 360 - 25,100+ 360 - 25, 50, 50);
-            MyFoo4 = new Foo( 360 - 25, 100+360 - 25, 50, 50);
             InitializeComponent();
-            Editor = InteractiveEditor.GenerateMyEditor<Foo>(this, "name", 10, 10, 200, 230, Modifiers.ControlFlags.EnablePages);
-            Editor.Visible = true;
+            init();
+            Init_EXECUTE_T0();
+
+            Editor = InteractiveEditor.GenerateMyEditor<Foo>(this, "Foo", 10, 10, 250, 400);
+
+            //Editor.Binder.BindToTypo(new string[] { "x", "y", "width" }, FilterMode.Whitelist) ;
+            
+            //Editor.Binder.BindToTypo();
+            Editor.Horizontal_Spacing = 0;
+            Editor.FieldHeight = 23;
+            Editor.Binder.BindToTypo(new string[] { "x", "width" }, FilterMode.Blacklist);
+            //Editor.Binder.BindToTypo(new BindingConfigurator(
+            //    (ref Dictionary<string, PreBindingArgs> MappedVariable) =>
+            //    {
+            //        MappedVariable["x"] = new PreBindingArgs(MappedVariable["x"])
+            //        {
+            //            FieldSet_FieldType = typeof(Separator),
+            //        };
+
+            //    }));
+
+
+
+
             Controls.Add(Editor.BackPanel);
-            this.Size = new Size(720, 720);
-            this.Paint += Form1_Paint;
-            Editor.Manipulator.AddField<TextBox>("Foo X");
-            Editor.Manipulator.AddField<TextBox>("Foo Y");
-            Editor.Manipulator.AddField<TextBox>("Foo W");
-            Editor.Manipulator.AddField<TextBox>("Foo H");
 
-            Editor.Manipulator.AddField<TextBox>("Foo A");
-            Editor.Manipulator.AddField<TextBox>("Foo B");
-            Editor.Manipulator.AddField<TextBox>("Foo C");
-            Editor.Manipulator.AddField<TextBox>("Foo D");
-
-            Editor.Manipulator.AddField<TextBox>("Foo G");
-            Editor.Manipulator.AddField<TextBox>("Foo R");
-            Editor.Manipulator.AddField<TextBox>("Foo J");
-            Editor.Manipulator.AddField<TextBox>("Foo L");
-
-            Editor.Manipulator.AddField<TextBox>("Foo U");
-            Editor.Manipulator.AddField<TextBox>("Foo I");
-            Editor.Manipulator.AddField<TextBox>("Foo O");
-            Editor.Manipulator.AddField<TextBox>("Foo P");
-
-            Editor.Manipulator.AddField<TextBox>("Foo 9");
-            Editor.Manipulator.AddField<TextBox>("Foo 5");
-            Editor.Manipulator.AddField<TextBox>("Foo 8");
-            Editor.Manipulator.AddField<TextBox>("Foo 7");
-
-            Editor.Manipulator.AddField<TextBox>("Foo 1");
-            Editor.Manipulator.AddField<TextBox>("Foo 2");
-            Editor.Manipulator.AddField<TextBox>("Foo 3");
-            Editor.Manipulator.AddField<TextBox>("Foo 4");
-
-            
-            
-
-            //Editor.AddField<TextBox>("Foo I");
-            //Editor.AddField<TextBox>("Foo J");
-            //Editor.AddField<TextBox>("Foo K");
-            //Editor.AddField<TextBox>("Foo U");
-
-            Editor.Binder.BindToVariable("Foo X", "x");
-            Editor.Binder.BindToVariable("Foo Y", "y");
-            Editor.Binder.BindToVariable("Foo W", "w");
-            Editor.Binder.BindToVariable("Foo H", "h");
-            //Editor.BindToType<Foo>();
-            this.DoubleBuffered = true;
-            
         }
 
         private void Form1_Paint(object sender, PaintEventArgs e)
         {
             Graphics g = e.Graphics;
-            Brush b = new SolidBrush(Color.Black);
-            g.FillRectangle(b, MyFoo.GetRectangle());
-            g.FillRectangle(b, MyFoo2.GetRectangle());
-            g.FillRectangle(b, MyFoo3.GetRectangle());
-            g.FillRectangle(b, MyFoo4.GetRectangle());
+            MyFoo.Render(g);
         }
 
-        
-        private void button1_Click(object sender, EventArgs e)
-        {
-            
-        }
-        bool b = true;
-        private void button2_Click(object sender, EventArgs e)
-        {
-            var field_service = Editor.ServiceProvider.Request<FieldLocatorService>(new byte[1]{ 0x1 });
-            var pages_service = Editor.ServiceProvider.Request<PageLocatorService>();
-
-            var tem = field_service.LocateName("Foo 7");
-
-            var field = field_service.LocatePredicate<string>(predict:(value, fs) =>
-            {
-                return "Foo C".Equals(fs.Name);
-            });
-
-            var a = pages_service.ToArray();
-            Editor.Binder.BindToObject(MyFoo3, false);
-        }
-
+      
         private void timer1_Tick(object sender, EventArgs e)
         {
             this.Invalidate();
         }
-    }
-    public class Foo 
-    {
-        public int x = 360 - 25;
-        public int y = 360 - 25;
-        public int w = 50;
-        public int h = 50;
-        public int i = 1;
-        public int j = 2;
-        public int k = 3;
-        public int u = 4;
-        public Rectangle GetRectangle() { return new Rectangle(x, y, w, h); }
-        
-        public Foo(int a, int b, int c, int d)
-        {
-            x = a;
-            y = b;
-            w = c;
-            h = d;
-            
 
+     
+        private void textBox1_PreviewKeyDown(object sender, PreviewKeyDownEventArgs e)
+        {
+            var tb = sender as TextBox;
+            if (e.KeyCode == Keys.Enter)
+            {
+                var command = $"{textBox1.Text}";
+                if(command.Split(' ').Length == 1)
+                {
+                    EXECUTE_T0[command].Invoke();
+                }
+                else
+                {
+
+                }
+                CommandHistory.Add(textBox1.Text);
+                CommandIndex = CommandHistory.Count;
+                textBox1.Clear();
+            }
+            else if (e.KeyCode == Keys.Up)
+            {
+                if (CommandHistory.Count >= 1)
+                {
+                    if (CommandIndex > 0)
+                        CommandIndex--;
+                    textBox1.Text = CommandHistory[CommandIndex];
+                }
+            }
+            else if (e.KeyCode == Keys.Down)
+            {
+                if (CommandHistory.Count >= 1)
+                {
+                    if (CommandIndex < CommandHistory.Count - 1)
+                        CommandIndex++;
+                    textBox1.Text = CommandHistory[CommandIndex];
+                }
+            }
+            else if (e.KeyCode == Keys.Tab)
+            {
+                textBox1.Select(0, 0);
+            }
         }
     }
+   
+    
     
 }
+

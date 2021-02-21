@@ -64,6 +64,9 @@
     <Compile Include="InteractiveEditor\Field\Fieldset.cs" />
     <Compile Include="InteractiveEditor\Modifiers.cs" />
     <Compile Include="Misc\LogHandler.cs" />
+    <Compile Include="Misc\Separator.cs">
+      <SubType>Component</SubType>
+    </Compile>
     <Compile Include="Services\BinderService\IBindingService.cs" />
     <Compile Include="Services\BinderService\BindingService.cs" />
     <Compile Include="Services\InvokerService\IInvokerService.cs" />

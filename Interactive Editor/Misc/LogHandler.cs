@@ -20,7 +20,7 @@ namespace Editor.Misc
         public static void DoLog(object sender, string value, int severity = 0)
         {
             OnLog?.Invoke(sender, new LogEventArgs() { Value = value, Severity = severity });
-            //Console.WriteLine(value);
+            Console.WriteLine(value);
         }
     }
 }

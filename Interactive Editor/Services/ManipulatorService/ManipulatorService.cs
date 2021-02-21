@@ -22,7 +22,54 @@ namespace Editor.Services
 
         #region Field
 
-       
+
+        public void AddField(Type U, string fieldName, FieldFlags flags = FieldFlags.None)
+        {
+            if (FieldLocator.LocateName(fieldName) is null)
+            {
+                if (Owner.CFlags.HasFlag(ControlFlags.EnablePages))
+                    AddField_PagesFlagEnabled();
+                else
+                    AddField_PagesFlagDisabled();
+            }
+
+            void AddField_PagesFlagEnabled()
+            {
+                RECALC:
+                var actualPage = PageLocator.LocateLast();
+
+                var newY = (actualPage.Horizontal_Spacing * actualPage.Fields.Count) + (actualPage.Fields.Count * actualPage.FieldHeight);
+                // Predict if the the bounds of the new field will overlap with
+                // the controls. If so, create a new page
+                if (newY + actualPage.FieldHeight > actualPage.Size.Height - actualPage.FieldHeight - InteractiveEditor.defaultMiscControlHeight)
+                {
+                    actualPage.Modify.AddPage();
+                    goto RECALC;
+                }
+                actualPage.Fields.Add(new Fieldset(
+                                          actualPage,
+                                          actualPage.Fields.Count + 1,
+                                          fieldName,
+                                          U,
+                                          0,
+                                          newY,
+                                          flags));
+            }
+
+            void AddField_PagesFlagDisabled()
+            {
+                Owner.Fields.Add(new Fieldset(
+                               Owner,
+                               Owner.Fields.Count + 1,
+                               fieldName,
+                               U,
+                               0,
+                               (Owner.Horizontal_Spacing * Owner.Fields.Count) + (Owner.Fields.Count * Owner.FieldHeight),
+                               flags));
+            }
+        }
+
+
         public void AddField<U>(string fieldName, FieldFlags flags = FieldFlags.None)
         {
             if(FieldLocator.LocateName(fieldName) is null)
@@ -69,8 +116,8 @@ namespace Editor.Services
             }
         }
 
-
-        public Control EditField(string key = null, bool GetPanel = false)
+        
+        public Control EditField(string key = null)
         {
             var target = key is null ? FieldLocator.LocateLast() : FieldLocator.LocateName(key);
             return target?.Field;
@@ -83,7 +130,7 @@ namespace Editor.Services
         }
 
 
-        public void SetDeltaMultiplier(string key = null, double value = 1)
+        public void SetDeltaMultiplier(double value, string key = null)
         {
             var target = key is null ? FieldLocator.LocateLast() : FieldLocator.LocateName(key);
             if (target != null)
@@ -91,7 +138,7 @@ namespace Editor.Services
         }
 
 
-        public void SetHSliderMultiplier(string key = null, double value = 1)
+        public void SetHSliderMultiplier(double value, string key = null)
         {
             var target = key is null ? FieldLocator.LocateLast() : FieldLocator.LocateName(key);
             if (target != null)
@@ -99,7 +146,7 @@ namespace Editor.Services
         }
 
 
-        public void ToggleFieldVisible(string key, bool newVal)
+        public void ToggleFieldVisible(bool newVal, string key = null)
         {
             var target = key is null ? FieldLocator.LocateLast() : FieldLocator.LocateName(key);
             if (target != null)

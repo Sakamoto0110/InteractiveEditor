@@ -42,5 +42,7 @@ namespace Editor.Services
 
         ControlFlags CFlags { get; set; }
 
+        int MiscControlHeight { get; set; }
+
     }
 }

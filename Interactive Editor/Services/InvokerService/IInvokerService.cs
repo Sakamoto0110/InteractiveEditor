@@ -9,11 +9,12 @@ namespace Editor.Services
 {
     public interface IInvokerService : _IService
     {
-
+        
         void InvokeForAllFields(Action<Fieldset> method);
+        void InvokeForAllFieldsEx(Action<Fieldset> method);
         void InvokeForAllPages(Action<InteractiveEditor> method);
 
-        
+        void InvokeForAllPagesReverse(Action<InteractiveEditor> method);
 
     }
 }

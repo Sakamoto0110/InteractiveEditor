@@ -12,33 +12,56 @@ using static Editor.Modifiers;
 
 namespace Editor
 {
+    // ways to use:
+    // 1: manual -> manually: create each field, bind field, bind to object
+    
+    // 3: automatic -> manually: bind to typo, bind to object. Auto: field creation
+    public enum TypeBinderMode
+    {
+        Automatic = 1,
+        Manual    = 2,
+    }
+    public class Configurator
+    {
+        public ControlFlags controlFlags;
+        public TypeBinderMode typeBinderMode;
 
+        public Configurator()
+        {
+            controlFlags = ControlFlags.EnableClear  |
+                           ControlFlags.EnableApply  |
+                           ControlFlags.EnablePages  |
+                           ControlFlags.EnableReload |
+                           ControlFlags.EnableQuestionMark;
+            typeBinderMode = TypeBinderMode.Manual;
+        }
+    }
     
     public class InteractiveEditor : ITwoWayBinderReciever , IManagerService, IDisposable
     {
-        
-      
-        #region Ctror and initialization methods
 
-        private InteractiveEditor(Form ownerWin, Type _T, string name, int x, int y, int width, int height, ControlFlags flags = ControlFlags.None)
+
+        #region Ctror and initialization methods
+        
+        private InteractiveEditor(Form ownerWin, Type _T, string name, int x, int y, int width, int height, Configurator _configurator = null)
         {
             OwnerForm = ownerWin;
             T = _T;
-            CFlags = flags;
             Name = name;
             Location = new Point(x, y);
             Size = new Size(width, height);
+            Config = _configurator;
             Initialize();
         }
 
-        public static InteractiveEditor GenerateMyEditor<T>(Form ownerWin, string name, int x, int y, int width, int height, ControlFlags flags = ControlFlags.None)
+        public static InteractiveEditor GenerateMyEditor<T>(Form ownerWin, string name, int x, int y, int width, int height, Configurator configurator = null)
         {
-            return new InteractiveEditor(ownerWin, typeof(T), name, x, y, width, height, flags);
+            return new InteractiveEditor(ownerWin, typeof(T), name, x, y, width, height, configurator);
         }
 
-        public static InteractiveEditor GenerateMyEditor(Form ownerWin, string name, int x, int y, int width, int height, ControlFlags flags = ControlFlags.None)
+        public static InteractiveEditor GenerateMyEditor(Form ownerWin, string name, int x, int y, int width, int height, Configurator configurator = null)
         {
-            return new InteractiveEditor(ownerWin, null, name, x, y, width, height, flags);
+            return new InteractiveEditor(ownerWin, null, name, x, y, width, height, configurator);
         }
 
         public static InteractiveEditor GeneratePage(InteractiveEditor Owner)
@@ -51,7 +74,7 @@ namespace Editor
                 Owner.Location.Y,
                 Owner.Size.Width,
                 Owner.Size.Height,
-                Owner.CFlags);
+                Owner.Config);
             Owner.OwnerForm.Controls.Add(newPage.BackPanel);
             return newPage;
         }
@@ -64,7 +87,7 @@ namespace Editor
             BackPanel.Location = Location;
             BackPanel.Size = Size;
             BackPanel.Text = Name;
-            BackPanel.Visible = Visible;
+            BackPanel.Visible = true;
             BackPanel.Enabled = true;
             AvailableFields = T?.GetFields();
 
@@ -73,6 +96,10 @@ namespace Editor
             PageDown += new EventHandler(this.OnPageDown);
             PagesChanged += new EventHandler(this.OnPagesChanged);
             Clear += new EventHandler(this.OnClear);
+
+            CFlags = Config.controlFlags;
+            TypeBinderMode = Config.typeBinderMode;
+
 
             // MISC CONTROLS INIT
 
@@ -149,10 +176,23 @@ namespace Editor
 
         }
 
+       
+
 
         #endregion
 
 
+
+        public void GoToFirstPage()
+        {
+            var actualPage = this;
+            do
+            {
+                actualPage.Visible = true;
+                actualPage = actualPage.PrevPage;
+            } while (actualPage != null);
+            
+        }
 
         #region Services interfaces 
 
@@ -180,8 +220,16 @@ namespace Editor
         #region Default values
 
         public static readonly int defaultFieldHeight = 30;
-        public static readonly Padding defaultMargins = new Padding(5, 15, 15, 0);
         public static readonly int defaultHSpacing = 5;
+        public static readonly Padding defaultMargins = new Padding(5, 15, 15, 0);
+        public static readonly int defaultMiscControlHeight = 35;
+
+        public static readonly ControlFlags defaultControlFlags = ControlFlags.EnableClear  | 
+                                                                  ControlFlags.EnableApply  | 
+                                                                  ControlFlags.EnablePages  | 
+                                                                  ControlFlags.EnableReload | 
+                                                                  ControlFlags.EnableQuestionMark;
+        public static readonly TypeBinderMode defaultTypeBinderMode = TypeBinderMode.Manual;
 
         #endregion
 
@@ -208,11 +256,15 @@ namespace Editor
         protected Size _Size = new Size(100, 100);
         protected Control _BackPanel;
 
+        protected Configurator _Config;
+        
         protected ControlFlags _CFlags = ControlFlags.None;
 
+        protected TypeBinderMode _TypeBiderMode = TypeBinderMode.Manual;
 
+        protected int _MiscControlHeight = defaultMiscControlHeight;
 
-        protected bool _Visible = false;
+        protected bool _Visible = true;
         protected bool _ShowText = true;
         protected bool _AutoSize = true;
         protected int _Horizontal_Spacing = defaultHSpacing;
@@ -241,7 +293,27 @@ namespace Editor
             get => _CFlags;
             set => _CFlags = value;
         }
-
+        public TypeBinderMode TypeBinderMode
+        {
+            get => _TypeBiderMode;
+            set => _TypeBiderMode = value;
+        }
+        public Configurator Config
+        {
+            get
+            {
+                if(_Config == null)
+                {
+                    _Config = new Configurator()
+                    {
+                       
+                    };
+                }
+                return _Config;
+            }
+            set => _Config = value;
+            
+        }
         public InteractiveEditor NextPage
         {
             get => _NextPage;
@@ -386,6 +458,13 @@ namespace Editor
             set => _Size = value;
         }
 
+        public int MiscControlHeight
+        {
+            get => _MiscControlHeight;
+            set => _MiscControlHeight = value;
+        }
+        
+
 
         #endregion
 
@@ -431,6 +510,7 @@ namespace Editor
         public void OnPageUp(object sender, EventArgs e)
         {
             NextPage.Visible = true;
+           
             this.Visible = false;
         }
 
@@ -445,6 +525,7 @@ namespace Editor
             else
             {
                 PrevPage.Visible = true;
+               
                 this.Visible = false;
             }
 
