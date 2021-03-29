@@ -11,10 +11,6 @@ namespace Editor.Services
     {
         
         void InvokeForAllFields(Action<Fieldset> method);
-        void InvokeForAllFieldsEx(Action<Fieldset> method);
-        void InvokeForAllPages(Action<InteractiveEditor> method);
-
-        void InvokeForAllPagesReverse(Action<InteractiveEditor> method);
 
     }
 }

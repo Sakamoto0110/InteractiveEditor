@@ -18,7 +18,20 @@ namespace Editor.Fields
 
 
         public readonly string Name = "default";
-        public string LabelText = "";
+        private string _LabelText = string.Empty;
+        public string LabelText
+        {
+            get => _LabelText;
+            set
+            {
+                if(value != null && !value.Equals(_LabelText))
+                {
+                    _LabelText = value;
+                    if(Label != null)
+                    Label.Text = _LabelText;
+                }
+            }
+        }
         protected Point _AnchorPoint = new Point(0, 0);
         public Point AnchorPoint
         {
@@ -30,7 +43,7 @@ namespace Editor.Fields
                     BackPanel.Location = _AnchorPoint;
             }
         }
-        protected InteractiveEditor Owner;
+        protected Inspector Owner;
 
         public readonly int Index = -1;
         public FieldFlags FFlags;
@@ -74,6 +87,7 @@ namespace Editor.Fields
         public string FieldName;
         public bool AllowBind = true;
         public bool ValidBind;
+        public Action<object> ApplyFunction;
         //
         // Unique bind properties
         //
@@ -113,7 +127,7 @@ namespace Editor.Fields
         public event EventHandler<FieldBinderEventArgs> FieldBindFinished;
         public event EventHandler<FieldBinderFailureEventArgs> FieldBindFailure;
 
-        public Fieldset(InteractiveEditor owner, int _index, string name, Type U, int _x, int _y, FieldFlags flags)
+        public Fieldset(Inspector owner, int _index, string name, Type U, int _x, int _y, FieldFlags flags)
         {
             Index = _index;
             Owner = owner;
@@ -142,10 +156,14 @@ namespace Editor.Fields
             // Label
             //
             Label = new Label();
+            Label.AutoSize = true;
             Label.Text = Name;
             Label.Parent = BackPanel;
             Label.Cursor = FFlags.HasFlag(FieldFlags.UseHandCursorLabel) ? Cursors.Hand : Cursors.Default;
             Label.Dock = DockStyle.Left;
+            Label.Font = new Font(SystemFonts.DefaultFont, FontStyle.Regular);
+            //Label.BackColor = Color.LightBlue;
+            
             //
             // Question Mark
             //
@@ -155,6 +173,8 @@ namespace Editor.Fields
             QuestionMark.Parent = BackPanel;
             QuestionMark.Size = new Size(20, 10);
             QuestionMark.Dock = DockStyle.Left;
+            QuestionMark.Font = new Font(SystemFonts.DefaultFont, FontStyle.Regular);
+            // QuestionMark.BackColor = Color.LightBlue;
             //
             // Field Unique properties ( TextBox, ComboBox or TrackBar properties )
             //
@@ -170,6 +190,8 @@ namespace Editor.Fields
             Field.Width = 100;
             Field.Location = new Point(BackPanel.Width - Field.Width, 0);
             Field.Parent = BackPanel;
+            Field.Font = new Font(SystemFonts.DefaultFont, FontStyle.Regular); 
+            //Field.BackColor = Color.LightBlue;
 
             Field.Enabled = !FFlags.HasFlag(FieldFlags.IsNotEnabled);
             Field.BringToFront();
@@ -221,13 +243,7 @@ namespace Editor.Fields
             BackPanel.Controls.Remove(QuestionMark);
             Owner.BackPanel.Controls.Remove(BackPanel);
         }
-        private InteractiveEditor GetOwner()
-        {
-            var actualPage = Owner;
-            while (actualPage.PrevPage != null)
-                actualPage = actualPage.PrevPage;
-            return actualPage;
-        }
+        
         public void Clear()
         {
             Unbind();
@@ -252,7 +268,6 @@ namespace Editor.Fields
             //AllowBind = false;
             args.Line = line;
             args.Source = callerName;
-            var rootEditor = GetOwner();
             FieldBindFailure?.Invoke(this, args);
         }
 
@@ -263,6 +278,10 @@ namespace Editor.Fields
             FieldInfo = T.GetField(varName);
             FieldName = varName;
 
+
+
+
+            
             var FieldBinderArgs = new FieldBinderEventArgs();
             FieldBinderArgs.FieldInfo = FieldInfo;
             FieldBinderArgs.TargetFieldName = varName;
@@ -271,8 +290,7 @@ namespace Editor.Fields
             FieldPreBind?.Invoke(this, FieldBinderArgs);
             if (FieldInfo == null)
             {
-
-
+                
                 OnFailure(new FieldBinderFailureEventArgs()
                 {
                     Message = $"Unable to get FieldInfo data from variable: {varName} in Type: {T}",
@@ -282,8 +300,12 @@ namespace Editor.Fields
                     VariableFieldName = Name,
                 });
 
-
+                return;
             }
+            
+            
+            
+            
         }
         public void BindToObject(object instance, bool multiBind, Func<object, object, object, object> bruteForce)
         {
@@ -336,7 +358,7 @@ namespace Editor.Fields
             int depth = GroupFieldInfo.Count-1;
             TRY_AGAIN:
             FieldInfo = instance.GetType().GetField(FieldName, BindingFlags.Public | BindingFlags.Instance);
-            if (FieldInfo is null)
+            if (FieldInfo is null )
             {
                 if (GroupFieldInfo[depth].FieldType.IsClass)
                 {
@@ -357,11 +379,10 @@ namespace Editor.Fields
                     
                     goto TRY_AGAIN;
                 }
-
             }
 
             
-            FieldData = FieldInfo.GetValue(instance);
+            FieldData = FieldInfo?.GetValue(instance);
 
             var FieldBinderArgs = new FieldBinderEventArgs();
             FieldBinderArgs.FieldInfo = FieldInfo;
@@ -392,10 +413,10 @@ namespace Editor.Fields
             }
             if (instance is ITwoWayBinderTransmiter twoWayBinder)
             {
-                twoWayBinder.BindedTo = this.GetOwner();
+                twoWayBinder.BindedTo = this.Owner;
             }
             Type dT = FieldData.GetType();
-            Field.BackColor = dT == typeof(Color) ? Color.FromArgb(255, (Color)FieldData) : Control.DefaultBackColor;
+            Field.BackColor = dT == typeof(Color) ? Color.FromArgb(255, (Color)FieldData) : Color.White;
             Field.ForeColor = dT == typeof(Color) ? Color.FromArgb(255, (Color)FieldData) : Control.DefaultForeColor;
             try
             {
@@ -459,6 +480,66 @@ namespace Editor.Fields
             FieldData = null;
             FieldInfo = null;
         }
+        private void ValueChanged_MultiBind(object sender, EventArgs e)
+        {
+            for (int i = 0; i < TargetInstanceList.Count; i++)
+            {
+                object instance = TargetInstanceList[i];
+                object data = FieldInfoList[i].GetValue(instance);
+                if (data.GetType() == typeof(Int32) || data.GetType() == typeof(double))
+                {
+                    double oldVal = Convert.ToDouble(data);
+                    var newVal = oldVal + _Delta;
+                    switch (data)
+                    {
+                        case int _:
+                            newVal = Convert.ToInt32(newVal);
+                            FieldInfoList[i].SetValue(instance, (int)newVal);
+                            break;
+                        case double _:
+                            FieldInfoList[i].SetValue(instance, newVal);
+                            break;
+
+                    }
+                }
+                else
+                {
+                    // Other data types like enums 
+
+                    switch (sender)
+                    {
+                        case TextBox textbox:
+
+                            if (data.GetType() == typeof(Color))
+                                data = GetColorTextboxData(textbox);
+                            else
+                                data = GetTextboxData(textbox);
+                            break;
+                        case TrackBar trackBar:
+                            data = GetTrackbar(trackBar);
+                            break;
+                        case ComboBox comboBox:
+                            data = GetComboboxData(comboBox);
+                            break;
+                    }
+
+                    try
+                    {
+                        FieldInfoList[i].SetValue(instance, data);
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine("Unable to apply multi bind");
+                        Console.WriteLine(ex);
+                    }
+                }
+
+                ApplyFunction?.Invoke(instance);
+                
+
+            }
+            
+        }
         public void ValueChanged(object sender, EventArgs e)
         {
             if (!_AutoUpdateEnabled)
@@ -467,62 +548,7 @@ namespace Editor.Fields
             }
             if (MultiBind)
             {
-                for (int i = 0; i < TargetInstanceList.Count; i++)
-                {
-                    object instance = TargetInstanceList[i];
-                    object data = FieldInfoList[i].GetValue(instance);
-                    if (data.GetType() == typeof(Int32) || data.GetType() == typeof(double))
-                    {
-                        double oldVal = Convert.ToDouble(data);
-                        var newVal = oldVal + _Delta;
-                        switch (data)
-                        {
-                            case int _:
-                                newVal = Convert.ToInt32(newVal);
-                                FieldInfoList[i].SetValue(instance, (int)newVal);
-                                break;
-                            case double _:
-                                FieldInfoList[i].SetValue(instance, newVal);
-                                break;
-
-                        }
-                    }
-                    else
-                    {
-                        // Other data types like enums 
-
-                        switch (sender)
-                        {
-                            case TextBox textbox:
-
-                                if (data.GetType() == typeof(Color))
-                                    data = TextBoxColorBinder(textbox);
-                                else
-                                    data = TextBoxBinder(textbox);
-                                break;
-                            case TrackBar trackBar:
-                                data = TrackBarBinder(trackBar);
-                                break;
-                            case ComboBox comboBox:
-                                data = ComboBoxBinder(comboBox);
-                                break;
-                        }
-
-                        try
-                        {
-                            FieldInfoList[i].SetValue(instance, data);
-                        }
-                        catch (Exception ex)
-                        {
-                            Console.WriteLine("Unable to apply multi bind");
-                            Console.WriteLine(ex);
-                        }
-                    }
-
-
-
-
-                }
+                ValueChanged_MultiBind(sender, e);
                 return;
             }
 
@@ -533,15 +559,15 @@ namespace Editor.Fields
                 case TextBox textbox:
 
                     if (FieldData.GetType() == typeof(Color))
-                        FieldData = TextBoxColorBinder(textbox);
+                        FieldData = GetColorTextboxData(textbox);
                     else
-                        FieldData = TextBoxBinder(textbox);
+                        FieldData = GetTextboxData(textbox);
                     break;
                 case TrackBar trackBar:
-                    FieldData = TrackBarBinder(trackBar);
+                    FieldData = GetTrackbar(trackBar);
                     break;
                 case ComboBox comboBox:
-                    FieldData = ComboBoxBinder(comboBox);
+                    FieldData = GetComboboxData(comboBox);
                     break;
             }
 
@@ -561,77 +587,78 @@ namespace Editor.Fields
                 Console.WriteLine(ex);
             }
 
-            object TextBoxBinder(TextBox textbox)
-            {
-
-                // Cap the textbox value
-                if (CapFunction != null)
-                {
-                    Delegate[] fList = CapFunction?.GetInvocationList();
-
-                    if (fList?.Length > 1)
-                    {
-                        for (int i = 1; i < fList.Length; i++)
-                        {
-                            CapFunction MulticastDelegate;
-                            MulticastDelegate = (CapFunction)fList[i];
-                            textbox.Text = (string)MulticastDelegate.Invoke(((CapFunction)fList[i - 1]).Invoke(textbox.Text, CapParms), CapParms);
-                        }
-                    }
-                    else
-                    {
-                        textbox.Text = (string)CapFunction.Invoke(textbox.Text, CapParms);
-                    }
-
-                    textbox.Select(textbox.Text.Length, 0);
-                }
-
-
-                // Convert the value of textbox to the value of the target variable
-                try
-                {
-                    switch (FieldData)
-                    {
-                        case int _:
-                            FieldData = Convert.ToInt32(textbox.Text);
-                            break;
-                        case double _:
-                            FieldData = Convert.ToDouble(textbox.Text);
-                            break;
-                        default:
-                            FieldData = textbox.Text;
-                            break;
-                    }
-                }
-                catch (Exception ex)
-                {
-                   // DoLog(this, ex.Message, 2);
-                };
-
-
-                return FieldData;
-
-            }
-            object TextBoxColorBinder(TextBox textbox)
-            {
-                return textbox.BackColor;
-
-            }
-            object TrackBarBinder(TrackBar trackBar)
-            {
-                return trackBar.Value;
-            }
-            object ComboBoxBinder(ComboBox comboBox)
-            {
-
-                return comboBox.SelectedValue;
-            }
+            ApplyFunction?.Invoke(TargetInstance);
+            
 
 
 
 
         }
+        internal object GetTextboxData(TextBox textbox)
+        {
 
+            // Cap the textbox value
+            if (CapFunction != null)
+            {
+                Delegate[] fList = CapFunction?.GetInvocationList();
+
+                if (fList?.Length > 1)
+                {
+                    for (int i = 1; i < fList.Length; i++)
+                    {
+                        CapFunction MulticastDelegate;
+                        MulticastDelegate = (CapFunction)fList[i];
+                        textbox.Text = (string)MulticastDelegate.Invoke(((CapFunction)fList[i - 1]).Invoke(textbox.Text, CapParms), CapParms);
+                    }
+                }
+                else
+                {
+                    textbox.Text = (string)CapFunction.Invoke(textbox.Text, CapParms);
+                }
+
+                textbox.Select(textbox.Text.Length, 0);
+            }
+
+
+            // Convert the value of textbox to the value of the target variable
+            try
+            {
+                switch (FieldData)
+                {
+                    case int _:
+                        FieldData = Convert.ToInt32(textbox.Text);
+                        break;
+                    case double _:
+                        FieldData = Convert.ToDouble(textbox.Text);
+                        break;
+                    default:
+                        FieldData = textbox.Text;
+                        break;
+                }
+            }
+            catch (Exception ex)
+            {
+                // DoLog(this, ex.Message, 2);
+            };
+
+
+            return FieldData;
+
+        }
+        internal object GetColorTextboxData(TextBox textbox)
+        {
+            return textbox.BackColor;
+
+        }
+        internal object GetTrackbar(TrackBar trackBar)
+        {
+            return trackBar.Value;
+        }
+        internal object GetComboboxData(ComboBox comboBox)
+        {
+
+            return comboBox.SelectedValue;
+        }
 
         private static void HSlider_MouseDown(object sender, MouseEventArgs e)
         {

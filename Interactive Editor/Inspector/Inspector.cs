@@ -37,47 +37,33 @@ namespace Editor
         }
     }
     
-    public class InteractiveEditor : ITwoWayBinderReciever , IManagerService, IDisposable
+    public class Inspector : ITwoWayBinderReciever , IManagerService, IDisposable
     {
 
 
         #region Ctror and initialization methods
         
-        private InteractiveEditor(Form ownerWin, Type _T, string name, int x, int y, int width, int height, Configurator _configurator = null)
+        private Inspector(Type _T, string name, Point location, Size size, Configurator _configurator = null)
         {
-            OwnerForm = ownerWin;
             T = _T;
             Name = name;
-            Location = new Point(x, y);
-            Size = new Size(width, height);
+            Location = new Point(location.X,location.Y);
+            Size = new Size(size.Width, size.Height);
             Config = _configurator;
             Initialize();
         }
 
-        public static InteractiveEditor GenerateMyEditor<T>(Form ownerWin, string name, int x, int y, int width, int height, Configurator configurator = null)
+        public static Inspector Build<T>(string name, Point location, Size size, Configurator configurator = null)
         {
-            return new InteractiveEditor(ownerWin, typeof(T), name, x, y, width, height, configurator);
+            return new Inspector(typeof(T), name, location, size, configurator);
         }
 
-        public static InteractiveEditor GenerateMyEditor(Form ownerWin, string name, int x, int y, int width, int height, Configurator configurator = null)
+        public static Inspector Build(string name, Point location, Size size, Configurator configurator = null)
         {
-            return new InteractiveEditor(ownerWin, null, name, x, y, width, height, configurator);
+            return new Inspector(null, name, location, size, configurator);
         }
 
-        public static InteractiveEditor GeneratePage(InteractiveEditor Owner)
-        {
-            var newPage = new InteractiveEditor(
-                Owner.OwnerForm,
-                Owner.T,
-                Owner.Name,
-                Owner.Location.X,
-                Owner.Location.Y,
-                Owner.Size.Width,
-                Owner.Size.Height,
-                Owner.Config);
-            Owner.OwnerForm.Controls.Add(newPage.BackPanel);
-            return newPage;
-        }
+       
 
         private void Initialize()
         {
@@ -87,6 +73,7 @@ namespace Editor
             BackPanel.Location = Location;
             BackPanel.Size = Size;
             BackPanel.Text = Name;
+            BackPanel.Font = new Font(BackPanel.Font, FontStyle.Bold);
             BackPanel.Visible = true;
             BackPanel.Enabled = true;
             AvailableFields = T?.GetFields();
@@ -109,7 +96,7 @@ namespace Editor
             MiscControls.Add(MiscControl.NextPage, new Button()
             {
                 Visible = CFlags.HasFlag(ControlFlags.EnablePages),
-                Enabled = !(NextPage == null),
+                Enabled = false,
                 Text = "\u25B6",
                 Name = "Next_Page",
                 Size = new Size(30, 30),
@@ -122,7 +109,7 @@ namespace Editor
             MiscControls.Add(MiscControl.PrevPage, new Button()
             {
                 Visible = CFlags.HasFlag(ControlFlags.EnablePages),
-                Enabled = !(PrevPage == null),
+                Enabled = false,
                 Text = "\u25C0",
                 Name = "Prev_Page",
                 Size = new Size(30, 30),
@@ -183,28 +170,17 @@ namespace Editor
 
 
 
-        public void GoToFirstPage()
-        {
-            var actualPage = this;
-            do
-            {
-                actualPage.Visible = true;
-                actualPage = actualPage.PrevPage;
-            } while (actualPage != null);
-            
-        }
+        
 
         #region Services interfaces 
 
         public _IServiceProvider ServiceProvider => new IOBServiceProvider(this);
 
 
-        public FieldLocatorService LocateField => ServiceProvider.Request<FieldLocatorService>();
+        public IFieldLocatorService LocateField => ServiceProvider.Request<FieldLocatorService>();
 
 
-        public PageLocatorService LocatePage => ServiceProvider.Request<PageLocatorService>();
-
-
+ 
         public IManipulatorService Modify => ServiceProvider.Request<ManipulatorService>();
 
 
@@ -272,8 +248,8 @@ namespace Editor
         protected Padding _Margins = defaultMargins;
         protected bool _AutoUpdateEnabled = true;
 
-        protected InteractiveEditor _NextPage;
-        protected InteractiveEditor _PrevPage;
+        protected Inspector _NextPage;
+        protected Inspector _PrevPage;
         protected List<Fieldset> _Fields = new List<Fieldset>();
 
         #endregion
@@ -314,33 +290,7 @@ namespace Editor
             set => _Config = value;
             
         }
-        public InteractiveEditor NextPage
-        {
-            get => _NextPage;
-            set
-            {
-                if (_NextPage != value)
-                {
-                    _NextPage = value;
-                    PagesChanged?.Invoke(this, null);
-                }
-            }
-        }
-
-
-        public InteractiveEditor PrevPage
-        {
-            get => _PrevPage;
-            set
-            {
-                if (_PrevPage != value)
-                {
-                    _PrevPage = value;
-                    PagesChanged?.Invoke(this, null);
-                }
-
-            }
-        }
+        
 
 
         public Control BackPanel
@@ -509,7 +459,6 @@ namespace Editor
 
         public void OnPageUp(object sender, EventArgs e)
         {
-            NextPage.Visible = true;
            
             this.Visible = false;
         }
@@ -518,16 +467,7 @@ namespace Editor
 
         public void OnPageDown(object sender, EventArgs e)
         {
-            if (PrevPage == null)
-            {
-                Console.WriteLine("prev page is null");
-            }
-            else
-            {
-                PrevPage.Visible = true;
-               
-                this.Visible = false;
-            }
+            
 
         }
 
@@ -535,8 +475,7 @@ namespace Editor
 
         private void OnPagesChanged(object sender, EventArgs e)
         {
-            MiscControls[MiscControl.PrevPage].Enabled = !(PrevPage == null);
-            MiscControls[MiscControl.NextPage].Enabled = !(NextPage == null);
+            
         }
 
 
@@ -566,32 +505,28 @@ namespace Editor
         public void EditFieldValueByVariableName(string key, object value)
         {
             var actualPage = this;
-            do
+            for (int i = 0; i < actualPage.Fields.Count; i++)
             {
-                for (int i = 0; i < actualPage.Fields.Count; i++)
+                if (actualPage.Fields[i].FieldName.Equals(key))
                 {
-                    if (actualPage.Fields[i].FieldName.Equals(key))
+                    var Field = actualPage.Fields[i].Field;
+                    var str = "";
+                    if (value is int v)
                     {
-                        var Field = actualPage.Fields[i].Field;
-                        var str = "";
-                        if (value is int v)
-                        {
-                            str = $"{v}";
-                        }
-                        else if (value is float f)
-                        {
-                            str = $"{f}";
-                        }
-                        else if (value is double d)
-                        {
-                            str = $"{d}";
-                        }
-                        ((TextBox)Field).Text = str;
-                        return;
+                        str = $"{v}";
                     }
+                    else if (value is float f)
+                    {
+                        str = $"{f}";
+                    }
+                    else if (value is double d)
+                    {
+                        str = $"{d}";
+                    }
+                    ((TextBox)Field).Text = str;
+                    return;
                 }
-                actualPage = actualPage.NextPage;
-            } while (actualPage != null);
+            }
         }
 
         #endregion

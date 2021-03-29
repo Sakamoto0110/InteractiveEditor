@@ -18,9 +18,6 @@ namespace Editor.Services
 
         Size Size { get; set; }
 
-        InteractiveEditor NextPage { get; set; }
-
-        InteractiveEditor PrevPage { get; set; }
 
         List<Fieldset> Fields { get; }
 

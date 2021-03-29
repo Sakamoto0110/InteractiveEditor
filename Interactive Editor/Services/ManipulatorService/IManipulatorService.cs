@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Editor.Services.BinderService.Mapping;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -47,23 +48,13 @@ namespace Editor.Services
         
         
         object GetFieldValue<O>(string key);
+
+        void BuildFieldsForTypeByMapping(MapObject map);
+
                 
         #endregion        
 
-        #region Pages
-        
-        void RenamePage(int pageNumber, string newName);
 
-
-        void AddPage();
-
-
-        void PrependPage();
-        
-        
-        void RemovePage();
-                       
-        #endregion
 
         #region Other
 

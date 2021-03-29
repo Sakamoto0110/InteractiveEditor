@@ -10,9 +10,11 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using Editor;
+using Editor.Controller;
 using Editor.Fields;
 using Editor.Misc;
 using Editor.Services;
+using Editor.Services.BinderService.Mapping;
 using MyEditorControl.TestObjects;
 using static Editor.Services.BindingService;
 
@@ -20,7 +22,7 @@ namespace MyEditorControl
 {
     public partial class DemoForm : Form
     {
-        public InteractiveEditor Editor;
+        public InspectorController Inspector;
         public List<string> CommandHistory = new List<string>();
         public int CommandIndex = 0;
 
@@ -42,8 +44,9 @@ namespace MyEditorControl
         }
         public void SelectFoo0()
         {
+            Inspector.Binder.BindToObject(MyFoo);
             Console.WriteLine("SelectFoo0 called");
-            Editor.Binder.BindToObject(MyFoo);
+            
         }
         void init()
         {
@@ -57,32 +60,21 @@ namespace MyEditorControl
         }
         public DemoForm()
         {
+            Inspector = InspectorController.BuildInspector<Foo>("Foo", new Point(10, 10), new Size(200, 1000),
+                new BindingConfigurator((map) =>
+                {
+                    map.Modify("x", (ref BindingArgs args) => args.FieldSet_Text = "Big X");
+                }));
+            
             InitializeComponent();
             init();
             Init_EXECUTE_T0();
+            Inspector.AttatchToWindow(this);
+               
+            //Inspector.Modify.BuildFieldsForTypeByMapping(Mapping.CreateTypoToInspectorFieldMapping<Foo>(null));
 
-            Editor = InteractiveEditor.GenerateMyEditor<Foo>(this, "Foo", 10, 10, 250, 400);
 
-            //Editor.Binder.BindToTypo(new string[] { "x", "y", "width" }, FilterMode.Whitelist) ;
             
-            //Editor.Binder.BindToTypo();
-            Editor.Horizontal_Spacing = 0;
-            Editor.FieldHeight = 23;
-            Editor.Binder.BindToTypo(new string[] { "x", "width" }, FilterMode.Blacklist);
-            //Editor.Binder.BindToTypo(new BindingConfigurator(
-            //    (ref Dictionary<string, PreBindingArgs> MappedVariable) =>
-            //    {
-            //        MappedVariable["x"] = new PreBindingArgs(MappedVariable["x"])
-            //        {
-            //            FieldSet_FieldType = typeof(Separator),
-            //        };
-
-            //    }));
-
-
-
-
-            Controls.Add(Editor.BackPanel);
 
         }
 

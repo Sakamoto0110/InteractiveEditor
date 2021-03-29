@@ -1,26 +1,22 @@
-﻿using System;
+﻿using Editor.Fields;
+using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Editor.Services
 
 {
-    public interface ILocatorService<TInstance>: _IService, IEnumerable
+    public interface IFieldLocatorService : _IService, IEnumerable
     {
 
         int Count { get; }
-        int CountAll { get; }
-        List<TInstance> ToList();
-        TInstance[] ToArray();
-        TInstance LocateIndex(int targetIndex = -1);
-        TInstance LocateName(string targetName);
-        TInstance LocatePredicate<TValue>(TValue targetValue = null, Func<TValue, TInstance, bool> predicate = null) where TValue : class;
-        TInstance LocateFirst();
-        TInstance LocateLast();
-        IEnumerable GetEnumeratorEx();
+        List<Fieldset> ToList();
+        Fieldset[] ToArray();
+        Fieldset LocateIndex(int targetIndex = -1);
+        Fieldset LocateName(string targetName);
+        Fieldset LocatePredicate<TValue>(TValue targetValue = null, Func<TValue, Fieldset, bool> predicate = null) where TValue : class;
+        Fieldset LocateFirst();
+        Fieldset LocateLast();
 
     }
 }
