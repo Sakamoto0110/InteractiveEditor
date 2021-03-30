@@ -27,7 +27,9 @@ namespace Editor.Services
         {
             if (FieldLocator.LocateName(fieldName) is null)
             {
-                Owner.Fields.Add(new Fieldset(
+                
+            }
+            Owner.Fields.Add(new Fieldset(
                                Owner,
                                Owner.Fields.Count + 1,
                                fieldName,
@@ -35,9 +37,7 @@ namespace Editor.Services
                                0,
                                (Owner.Horizontal_Spacing * Owner.Fields.Count) + (Owner.Fields.Count * Owner.FieldHeight),
                                flags));
-            }
 
-            
         }
 
 
@@ -190,12 +190,25 @@ namespace Editor.Services
 
         public void BuildFieldsForTypeByMapping(MapObject map)
         {
-            foreach(BindingArgs args in map.Values)
+            int c = 0;
+            int totalValues = map.Values.Count;
+            BindingArgs[] argsArr = map.Values.ToArray();
+
+            for(int i = 0; i < totalValues; i++)
             {
+                BindingArgs args = argsArr[i];
+                
+                
                 AddField(args.FieldSet_FieldType, args.FieldSet_Name);
                 var f = FieldLocator.LocateLast();
-                f.Label.Text = args.FieldSet_Text?? args.FieldSet_Name;
+                f.Label.Text = args.FieldSet_Text ?? args.FieldSet_Name;
+
             }
+
+            
+
+          
+
         }
 
 

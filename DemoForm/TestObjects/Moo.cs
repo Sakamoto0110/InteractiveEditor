@@ -11,8 +11,10 @@ namespace MyEditorControl.TestObjects
 
         public int mooX = 0;
         public int mooY = 42;
+        
         public Doo var_doo = new Doo();
-
+        public int mooW = 53;
+        public int mooH = 963;
 
     }
 }

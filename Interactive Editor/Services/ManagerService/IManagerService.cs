@@ -1,4 +1,5 @@
 ﻿using Editor.Fields;
+using Editor.Misc;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -21,7 +22,7 @@ namespace Editor.Services
 
         List<Fieldset> Fields { get; }
 
-        Control BackPanel { get; }
+        BackpanelHelper BackPanel { get; }
 
         bool Visible { get; set; }
 

@@ -214,7 +214,7 @@ namespace Editor
         #region NonPublic or readonly properties
 
         public Type T { get; }
-        public readonly Form OwnerForm;
+        public Form OwnerForm;
         public readonly Dictionary<MiscControl, Control> MiscControls = new Dictionary<MiscControl, Control>();
         public FieldInfo[] AvailableFields;
 
@@ -230,7 +230,7 @@ namespace Editor
         protected string _Name = "default";
         protected Point _Location;
         protected Size _Size = new Size(100, 100);
-        protected Control _BackPanel;
+        protected BackpanelHelper _BackPanel;
 
         protected Configurator _Config;
         
@@ -293,11 +293,11 @@ namespace Editor
         
 
 
-        public Control BackPanel
+        public BackpanelHelper BackPanel
         {
             get
             {
-                return _BackPanel = _BackPanel ?? new GroupBox();
+                return _BackPanel = _BackPanel ?? new BackpanelHelper();
             }
         }
 
@@ -436,12 +436,37 @@ namespace Editor
 
         #region Default Event Implementations
 
+        
+
         public void OnFieldVisibilityChanged(object sender, FieldChangedEventArgs e)
         {
             Fieldset field = sender as Fieldset;
+
+
+            if (field.GroupSize > 0)
+            {
+                for (int i = 0; i < field.GroupSize; i++)
+                {
+                    string targetName = field.GroupMembersName[i];
+                    Fieldset f = LocateField.LocateName(targetName);
+                    f.Visible = field.Visible && !field.IsCollapsed;
+
+                }
+            }
+
             var delta = field.Visible ? Horizontal_Spacing + FieldHeight : -Horizontal_Spacing + -FieldHeight;
-            for (int i = e.index; i < Fields.Count; i++)
-                Fields[i].BackPanel.Location = new Point(Fields[i].BackPanel.Location.X, Fields[i].BackPanel.Location.Y + delta);
+            if (delta > 0)            
+                for (int i = e.index; i < Fields.Count; i++)                
+                    Fields[i].BackPanel.Location = new Point(Fields[i].BackPanel.Location.X, Fields[i].BackPanel.Location.Y + delta);                            
+            else            
+                for (int i = Fields.Count - 1; i >= e.index; i--)                
+                    Fields[i].BackPanel.Location = new Point(Fields[i].BackPanel.Location.X, Fields[i].BackPanel.Location.Y + delta);                
+            
+            
+
+
+
+
 
 
         }

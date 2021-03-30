@@ -66,6 +66,9 @@
     <Compile Include="Inspector\Field\Fieldset.cs" />
     <Compile Include="Inspector\Modifiers.cs" />
     <Compile Include="Logging\Logger.cs" />
+    <Compile Include="Misc\BackpanelHelper.cs">
+      <SubType>Component</SubType>
+    </Compile>
     <Compile Include="Misc\LogHandler.cs" />
     <Compile Include="Misc\Separator.cs">
       <SubType>Component</SubType>

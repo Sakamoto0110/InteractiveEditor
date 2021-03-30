@@ -19,18 +19,14 @@ namespace MyEditorControl.TestObjects
         }
         public int x = 0;
         public int y = 0;
-        public int width = 30;
-        public int height = 30;
+        
 
         
 
         public Moo var_moo = new Moo();
 
-        public int C5 = 953;
-
-        public int V1 = 9753;
-        public int V2 = 933;
-        public int V3 = 353;
+        public int width = 30;
+        public int height = 30;
 
         public Foo(int _x, int _y, int _w, int _h)
         {

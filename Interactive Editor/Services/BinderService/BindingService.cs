@@ -15,7 +15,7 @@ namespace Editor.Services
 
     public class BindingService : IBindingService
     {
-        private readonly int MAX_NESTED_VARIABLE_LAYER = 5;
+        private readonly int MAX_NESTED_VARIABLE_LAYER = 10;
         enum FlterMode
         {
             undefined = 0,
@@ -175,13 +175,18 @@ namespace Editor.Services
                     fieldset.Field.Visible = false;                                                          
                     fieldset.Label.Font = new Font(fieldset.Label.Font, FontStyle.Bold);
 
-                    fieldset.QuestionMark.Visible = false;
+                    //fieldset.QuestionMark.Visible = false;
+                    fieldset.GroupSize = bindingArgs.GroupSize;
+                    fieldset.IsGroupOwner = true;
+                    fieldset.SetAsCollapseable();
+
+
                     for (int j = 1; j < bindingArgs.GroupSize+1; j++)
                     {
-                        
-                        var fs = Owner.LocateField.LocateName(map[keyArr[i + j]].FieldSet_Name);
-
-                        
+                        var targetName = bindingArgs.GroupMembers[j - 1];
+                        var fs = Owner.LocateField.LocateName(targetName);
+                        fieldset.Children.Add(fs);
+                        fieldset.GroupMembersName.Add(targetName);
 
                         for (int k = 0; k < fieldset.GroupFieldInfo.Count; k++)
                             fs.GroupFieldInfo.Add(fieldset.GroupFieldInfo[k]);
@@ -196,11 +201,10 @@ namespace Editor.Services
                         fs.BackPanel.Location = new Point(fs.BackPanel.Location.X + offX, fs.BackPanel.Location.Y);
                         fs.BackPanel.Width -= offX;
                         fs.Field.Location = new Point(fs.Field.Location.X - offX, fs.Field.Location.Y);
-                        fieldset.BackPanel.Size = new Size(fieldset.BackPanel.Width - offX, fieldset.BackPanel.Height);
-                        fieldset.BackPanel.Location = new Point(fs.BackPanel.Location.X, fieldset.BackPanel.Location.Y);
+                        //fieldset.BackPanel.Size = new Size(fieldset.BackPanel.Width - offX, fieldset.BackPanel.Height);
+                        //fieldset.BackPanel.Location = new Point(fs.BackPanel.Location.X, fieldset.BackPanel.Location.Y);
                     }
 
-                    continue;
                 }
                 else
                 {

@@ -50,7 +50,7 @@ namespace Editor.Services.BinderService.Mapping
 
 
             int c = newTargetList.Count;
-            int maxTries = 20;
+            int maxTries = 200;
             for (int i = 0; i < c; i++)
             {
                 FieldInfo fi = newTargetList[i];
@@ -119,10 +119,7 @@ namespace Editor.Services.BinderService.Mapping
                 Console.WriteLine("Something went wrong during custom mapping");
                 Console.WriteLine(ex.Message);
             }
-            foreach(BindingArgs args in map.Values)
-            {
-                Console.WriteLine(args.FieldSet_Name + " " + args.FieldSet_Text);
-            }
+
             return map;
         }
 
@@ -155,12 +152,18 @@ namespace Editor.Services.BinderService.Mapping
                 if (AvailClass(bindingArgs.TargetVariable_Type))
                 {
                     int gsize = 0;
+                    List<string> members = new List<string>();
                     foreach (FieldInfo innerInfo in bindingArgs.TargetVariable_Type.GetFields())
                         foreach (string innerStr in map.Keys)
                             if (innerInfo.Name.Equals(innerStr))
+                            {
                                 gsize++;
+                                members.Add(innerStr);
+                            }
+                                
                     if (gsize > 0)
                     {
+                        bindingArgs.GroupMembers = new List<string>(members);
                         bindingArgs.IsGroup = true;
                         bindingArgs.GroupSize = gsize;
                         map[str] = new BindingArgs(bindingArgs);

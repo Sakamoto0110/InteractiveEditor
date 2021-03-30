@@ -15,6 +15,9 @@ namespace Editor.Fields
     {
 
         public List<FieldInfo> GroupFieldInfo = new List<FieldInfo>();
+        public bool IsGroupOwner = false;
+        public int GroupSize = 0;
+        public List<string> GroupMembersName = new List<string>();
 
 
         public readonly string Name = "default";
@@ -67,9 +70,22 @@ namespace Editor.Fields
                     _Visible = value;
                     BackPanel.Visible = _Visible;
                     FieldVisibleChanged?.Invoke(this, new FieldChangedEventArgs(this.Index));
-                    
+
+
+
+
+
                 }
 
+            }
+        }
+        public bool _IsCollapsed = false;
+        public bool IsCollapsed
+        {
+            get => _IsCollapsed;
+            set
+            {
+                _IsCollapsed = value;
             }
         }
         //
@@ -80,6 +96,7 @@ namespace Editor.Fields
         public Control Field;
         public Panel BackPanel;
         public List<Control> MiscControls;
+        public List<Fieldset> Children;
         //
         // Binding properteies
         //            
@@ -143,7 +160,7 @@ namespace Editor.Fields
         private void Initialize(Type type)
         {
             MiscControls = new List<Control>();
-
+            Children = new List<Fieldset>();
             //
             // BackPanel 
             //
@@ -235,6 +252,35 @@ namespace Editor.Fields
         }
 
 
+        public void SetAsCollapseable()
+        {
+            QuestionMark.Text = "\u2B9F";
+            Label.Cursor = Cursors.Hand;
+            Label.Click += (s, e) => 
+            {
+                if (IsCollapsed)
+                    Expand();
+                else
+                    Collapse();
+            };
+
+        }
+
+        public void Collapse()
+        {
+            for (int i = 0; i < Children.Count; i++)
+                Children[i].Visible = false;
+            IsCollapsed = true;
+            QuestionMark.Text = "\u2B9E";
+        }
+
+        public void Expand()
+        {
+            QuestionMark.Text = "\u2B9F";
+            for (int i = 0; i < Children.Count; i++)
+                Children[i].Visible = true;
+            IsCollapsed = false;
+        }
 
         public void Destroy()
         {

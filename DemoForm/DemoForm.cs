@@ -26,7 +26,7 @@ namespace MyEditorControl
         public List<string> CommandHistory = new List<string>();
         public int CommandIndex = 0;
 
-        public Foo MyFoo = new Foo(380, 50, 50, 50);
+        public Foo MyFoo = new Foo(300, 50, 50, 50);
 
         public static readonly string[] ComList = new string[]
         {
@@ -42,9 +42,12 @@ namespace MyEditorControl
                 {"select", SelectFoo0 }
             };
         }
+        bool b = true;
         public void SelectFoo0()
         {
-            Inspector.Binder.BindToObject(MyFoo);
+            
+            
+           
             Console.WriteLine("SelectFoo0 called");
             
         }
@@ -54,26 +57,37 @@ namespace MyEditorControl
             textBox1.AutoCompleteSource = AutoCompleteSource.CustomSource;
             textBox1.AutoCompleteCustomSource = new AutoCompleteStringCollection();
             textBox1.AutoCompleteCustomSource.AddRange(ComList);
-            this.Size = new Size(480,480);
+           // this.Size = new Size(480,480);
             this.Paint += Form1_Paint;
             this.DoubleBuffered = true;
         }
         public DemoForm()
         {
-            Inspector = InspectorController.BuildInspector<Foo>("Foo", new Point(10, 10), new Size(200, 1000),
+            Inspector = InspectorController.BuildInspector<Foo>("Foo", new Point(10, 50), new Size(250, 800),
                 new BindingConfigurator((map) =>
                 {
-                    map.Modify("x", (ref BindingArgs args) => args.FieldSet_Text = "Big X");
                 }));
             
             InitializeComponent();
             init();
             Init_EXECUTE_T0();
             Inspector.AttatchToWindow(this);
-               
+
             //Inspector.Modify.BuildFieldsForTypeByMapping(Mapping.CreateTypoToInspectorFieldMapping<Foo>(null));
 
-
+            Inspector.Invoker.InvokeForAllFields(
+                (fs) =>
+                {
+                    if(fs.GroupSize > 0)
+                    {
+                        //Console.WriteLine(fs.Name + " " + fs.Children.Count);
+                    }
+                    else
+                    {
+                        //Console.WriteLine(fs.Name + " " + fs.GroupFieldInfo.Count);
+                    }
+                    
+                });
             
 
         }
@@ -131,6 +145,11 @@ namespace MyEditorControl
             {
                 textBox1.Select(0, 0);
             }
+        }
+
+        private void button1_Click(object sender, EventArgs e)
+        {
+            Inspector.Binder.BindToObject(MyFoo);
         }
     }
    

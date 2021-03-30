@@ -6,11 +6,10 @@ using System.Threading.Tasks;
 
 namespace MyEditorControl.TestObjects
 {
-    public class Doo
+    public class Boo
     {
+        public int booX = 41;
+        public int booY = 421;
 
-        public int DZ = 13;
-        public int DY = 53;
-        public Zoo var_zoo = new Zoo();
     }
 }

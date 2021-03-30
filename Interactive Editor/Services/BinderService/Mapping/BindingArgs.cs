@@ -26,18 +26,25 @@ namespace Editor.Services.BinderService.Mapping
             capFunction = other.capFunction;
             capParms = other.capParms;
             FieldSet_Text = other.FieldSet_Text;
+            GroupMembers = new List<string>(other.GroupMembers);
         }
 
         public bool DoBind;
+
         public string FieldSet_Name;
         public string FieldSet_Text;
         public Type FieldSet_FieldType;
+
         public Type TargetVariable_Type;
         public string TargetVariable_Name;
-        public FieldInfo TargetVariable_FieldInfo;        
+        public FieldInfo TargetVariable_FieldInfo;   
+        
         public PostBindingConfigurator Post;
+        
         public bool IsGroup;
         public int GroupSize;
+        public List<string> GroupMembers;
+
         public CapFunction capFunction;
         public object capParms;
 

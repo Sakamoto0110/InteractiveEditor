@@ -66,6 +66,7 @@ namespace Editor.Controller
         {
             if(OwnerForm == null)
             {
+                MyInspector.OwnerForm = owner;
                 owner.Controls.Add(MyInspector.BackPanel);
                 OwnerForm = owner;
             }
