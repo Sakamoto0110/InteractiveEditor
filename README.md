@@ -1,5 +1,9 @@
+Actual
+
 v0.7a ( alpha )
 Project still in alpha and big changes will ocour 
+
+--------------------------------------------------
 
 v0.7b Upcomming features
 - Add scrollbar 
