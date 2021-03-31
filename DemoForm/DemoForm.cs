@@ -71,6 +71,12 @@ namespace MyEditorControl
             InitializeComponent();
             init();
             Init_EXECUTE_T0();
+
+            
+            
+            
+
+            
             Inspector.AttatchToWindow(this);
 
             //Inspector.Modify.BuildFieldsForTypeByMapping(Mapping.CreateTypoToInspectorFieldMapping<Foo>(null));

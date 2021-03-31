@@ -157,7 +157,7 @@ namespace Editor.Services.BinderService.Mapping
                         foreach (string innerStr in map.Keys)
                             if (innerInfo.Name.Equals(innerStr))
                             {
-                                gsize++;
+                                gsize++;                                                                
                                 members.Add(innerStr);
                             }
                                 
@@ -167,7 +167,6 @@ namespace Editor.Services.BinderService.Mapping
                         bindingArgs.IsGroup = true;
                         bindingArgs.GroupSize = gsize;
                         map[str] = new BindingArgs(bindingArgs);
-
                     }
                 }
 

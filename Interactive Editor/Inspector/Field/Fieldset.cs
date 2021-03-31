@@ -166,7 +166,7 @@ namespace Editor.Fields
             //
             BackPanel = new Panel();
             BackPanel.Size = new Size(Owner.Size.Width - Owner.Margins.Right, 30);
-            BackPanel.Location = new Point(_AnchorPoint.X + Owner.Margins.Left, _AnchorPoint.Y + Owner.Margins.Top);
+            BackPanel.Location = new Point(_AnchorPoint.X + Owner.Margins.Left, _AnchorPoint.Y + Owner.Margins.Top);            
             BackPanel.Parent = Owner.BackPanel;
             BackPanel.BringToFront();
             //

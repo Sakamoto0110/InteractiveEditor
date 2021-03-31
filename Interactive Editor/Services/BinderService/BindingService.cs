@@ -198,7 +198,7 @@ namespace Editor.Services
                         
                         // Fix posX of fields/labels
                         var offX = (fs.GroupFieldInfo.Count * 10);
-                        fs.BackPanel.Location = new Point(fs.BackPanel.Location.X + offX, fs.BackPanel.Location.Y);
+                        fs.AnchorPoint = new Point(fs.BackPanel.Location.X + offX, fs.BackPanel.Location.Y);
                         fs.BackPanel.Width -= offX;
                         fs.Field.Location = new Point(fs.Field.Location.X - offX, fs.Field.Location.Y);
                         //fieldset.BackPanel.Size = new Size(fieldset.BackPanel.Width - offX, fieldset.BackPanel.Height);

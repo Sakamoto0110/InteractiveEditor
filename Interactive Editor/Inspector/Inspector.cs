@@ -79,10 +79,11 @@ namespace Editor
             AvailableFields = T?.GetFields();
 
             VisibleChanged += new EventHandler(this.OnVisibleChanged);
-            PageUp += new EventHandler(this.OnPageUp);
-            PageDown += new EventHandler(this.OnPageDown);
-            PagesChanged += new EventHandler(this.OnPagesChanged);
             Clear += new EventHandler(this.OnClear);
+            MouseWheel += new MouseEventHandler(this.OnMouseWheel);
+            Scroll += new ScrollEventHandler(this.OnScroll);
+
+            BackPanel.MouseWheel += MouseWheel;
 
             CFlags = Config.controlFlags;
             TypeBinderMode = Config.typeBinderMode;
@@ -422,13 +423,10 @@ namespace Editor
 
         #region Events
 
-        public event EventHandler VisibleChanged;
-        public event EventHandler PageUp;
-        public event EventHandler PageDown;
-        public event EventHandler PagesChanged;
+        public event EventHandler VisibleChanged;        
         public event EventHandler Clear;
-
-
+        public event ScrollEventHandler Scroll;
+        public event MouseEventHandler MouseWheel;
 
         #endregion
 
@@ -436,7 +434,7 @@ namespace Editor
 
         #region Default Event Implementations
 
-        
+
 
         public void OnFieldVisibilityChanged(object sender, FieldChangedEventArgs e)
         {
@@ -481,29 +479,35 @@ namespace Editor
         }
 
 
-
-        public void OnPageUp(object sender, EventArgs e)
-        {
-           
-            this.Visible = false;
-        }
-
-
-
-        public void OnPageDown(object sender, EventArgs e)
-        {
-            
-
-        }
-
-
-
-        private void OnPagesChanged(object sender, EventArgs e)
+        private void OnScroll(object sender, ScrollEventArgs e)
         {
             
         }
-
-
+        private void OnMouseWheel(object sender, MouseEventArgs e)
+        {
+            int delta = 10 * (e.Delta > 0 ? 1 : -1);
+            if(delta < 0)
+            {
+                for(int i = 0; i < Fields.Count; i++)
+                {
+                    var field = Fields[i];
+                    var oldVal = new Point(field.BackPanel.Location.X, field.BackPanel.Location.Y);
+                    field.BackPanel.Location = new Point(oldVal.X, oldVal.Y + delta);
+                }
+            }
+            else
+            {
+                for (int i = Fields.Count-1; i >= 0; i--)
+                {
+                    var field = Fields[i];
+                    var oldVal = new Point(field.BackPanel.Location.X, field.BackPanel.Location.Y);
+                    field.BackPanel.Location = new Point(oldVal.X, oldVal.Y + delta);
+                }
+            }
+            
+        }
+       
+        
 
         private void OnClear(object sender, EventArgs e)
         {
