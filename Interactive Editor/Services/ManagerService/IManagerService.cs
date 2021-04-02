@@ -22,7 +22,7 @@ namespace Editor.Services
 
         List<Fieldset> Fields { get; }
 
-        BackpanelHelper BackPanel { get; }
+        Panel BackPanel { get; }
 
         bool Visible { get; set; }
 

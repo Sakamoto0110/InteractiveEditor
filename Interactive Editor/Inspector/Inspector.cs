@@ -63,10 +63,11 @@ namespace Editor
             return new Inspector(null, name, location, size, configurator);
         }
 
-       
+
 
         private void Initialize()
-        {
+        {            
+            Modify.AddField(typeof(EmptyControl), Name);
 
             ShowText = true;
             AutoSize = true;
@@ -88,6 +89,7 @@ namespace Editor
             CFlags = Config.controlFlags;
             TypeBinderMode = Config.typeBinderMode;
 
+            BackPanel.BorderStyle = BorderStyle.FixedSingle;
 
             // MISC CONTROLS INIT
 
@@ -161,6 +163,10 @@ namespace Editor
             });
             MiscControls[MiscControl.Clear].Click += (s, e) => Clear?.Invoke(s, e);
             Logger.DoLog(this, "MyEditor sucessfully initialized!");
+            foreach(Control c in MiscControls.Values)
+            {
+                c.Visible = false;
+            }
 
         }
 
@@ -218,7 +224,7 @@ namespace Editor
         public Form OwnerForm;
         public readonly Dictionary<MiscControl, Control> MiscControls = new Dictionary<MiscControl, Control>();
         public FieldInfo[] AvailableFields;
-
+        public Label Label { get; protected set; }
         #endregion
        
 
@@ -231,7 +237,7 @@ namespace Editor
         protected string _Name = "default";
         protected Point _Location;
         protected Size _Size = new Size(100, 100);
-        protected BackpanelHelper _BackPanel;
+        protected Panel _BackPanel;
 
         protected Configurator _Config;
         
@@ -294,11 +300,11 @@ namespace Editor
         
 
 
-        public BackpanelHelper BackPanel
+        public Panel BackPanel
         {
             get
             {
-                return _BackPanel = _BackPanel ?? new BackpanelHelper();
+                return _BackPanel = _BackPanel ?? new Panel();
             }
         }
 
@@ -454,11 +460,19 @@ namespace Editor
 
             var delta = field.Visible ? Horizontal_Spacing + FieldHeight : -Horizontal_Spacing + -FieldHeight;
             if (delta > 0)            
-                for (int i = e.index; i < Fields.Count; i++)                
-                    Fields[i].BackPanel.Location = new Point(Fields[i].BackPanel.Location.X, Fields[i].BackPanel.Location.Y + delta);                            
+                for (int i = e.index; i < Fields.Count; i++)
+                {
+                    if(i!=0)
+                        Fields[i].BackPanel.Location = new Point(Fields[i].BackPanel.Location.X, Fields[i].BackPanel.Location.Y + delta);
+                }
+                    
             else            
-                for (int i = Fields.Count - 1; i >= e.index; i--)                
-                    Fields[i].BackPanel.Location = new Point(Fields[i].BackPanel.Location.X, Fields[i].BackPanel.Location.Y + delta);                
+                for (int i = Fields.Count - 1; i >= e.index; i--)
+                {
+                    if (i != 0)
+                        Fields[i].BackPanel.Location = new Point(Fields[i].BackPanel.Location.X, Fields[i].BackPanel.Location.Y + delta);
+                }
+                    
             
             
 
@@ -485,26 +499,42 @@ namespace Editor
         }
         private void OnMouseWheel(object sender, MouseEventArgs e)
         {
+
+            
+
             int delta = 10 * (e.Delta > 0 ? 1 : -1);
-            if(delta < 0)
+
+            var lastField = LocateField.LocateLast();
+            var firstField = LocateField.LocateIndex(1);
+
+            //SCROLL DOWN
+            if (delta < 0)
             {
-                for(int i = 0; i < Fields.Count; i++)
-                {
-                    var field = Fields[i];
-                    var oldVal = new Point(field.BackPanel.Location.X, field.BackPanel.Location.Y);
-                    field.BackPanel.Location = new Point(oldVal.X, oldVal.Y + delta);
-                }
+                if (lastField.BackPanel.Location.Y + lastField.BackPanel.Size.Height < BackPanel.Height)
+                    return;
+
+                for (int i = 0; i < Fields.Count; i++)               
+                    if (i != 0)
+                    {
+                        var field = Fields[i];
+                        var oldVal = new Point(field.BackPanel.Location.X, field.BackPanel.Location.Y);
+                        field.BackPanel.Location = new Point(oldVal.X, oldVal.Y + delta);
+                    }               
             }
+            //SCROLL UP
             else
             {
-                for (int i = Fields.Count-1; i >= 0; i--)
-                {
-                    var field = Fields[i];
-                    var oldVal = new Point(field.BackPanel.Location.X, field.BackPanel.Location.Y);
-                    field.BackPanel.Location = new Point(oldVal.X, oldVal.Y + delta);
-                }
+                if (firstField.BackPanel.Location.Y > LocateField.LocateIndex(0).BackPanel.Location.X+ LocateField.LocateIndex(0).BackPanel.Size.Height)                                    
+                    return;
+                
+                for (int i = Fields.Count-1; i >= 0; i--)                 
+                    if (i != 0)
+                    {
+                        var field = Fields[i];
+                        var oldVal = new Point(field.BackPanel.Location.X, field.BackPanel.Location.Y);
+                        field.BackPanel.Location = new Point(oldVal.X, oldVal.Y + delta);
+                    }                                    
             }
-            
         }
        
         

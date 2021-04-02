@@ -168,7 +168,9 @@ namespace Editor.Services
                 BindingArgs bindingArgs = map[str];
                 Fieldset fieldset = Provider.Request<FieldLocatorService>().LocateName(bindingArgs.FieldSet_Name);
                 
-                if (bindingArgs.IsGroup)
+
+
+                if (bindingArgs.IsGroup )
                 {
                     Type localType = bindingArgs.TargetVariable_Type;
                     
@@ -220,6 +222,7 @@ namespace Editor.Services
                 
                 bindingArgs.Post?.Invoke(fieldset);
             }
+            Owner.Fields[0].BackPanel.BringToFront();
         }
         
         internal void ExecuteBind(string key, string varName, CapFunction capFunction, object capParms)

@@ -63,7 +63,7 @@ namespace MyEditorControl
         }
         public DemoForm()
         {
-            Inspector = InspectorController.BuildInspector<Foo>("Foo", new Point(10, 50), new Size(250, 800),
+            Inspector = InspectorController.BuildInspector<Foo>("Foo", new Point(10, 50), new Size(250, 400),
                 new BindingConfigurator((map) =>
                 {
                 }));

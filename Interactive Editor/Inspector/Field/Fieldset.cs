@@ -200,6 +200,7 @@ namespace Editor.Fields
             if (type == typeof(TrackBar)) TrackBarInit();
             if (type == typeof(Button)) ButtonInit();
             if (type == typeof(Separator)) SeparatorInit();
+            if (type == typeof(EmptyControl)) EmptyControlInit();
             //
             // Field Generic properties ( Control properties )
             //                             
@@ -249,6 +250,20 @@ namespace Editor.Fields
             {
                 Field = new Separator();
             }
+            void EmptyControlInit()
+            {
+                Field = new EmptyControl();
+                this.Label.Font = new Font(this.Label.Font, FontStyle.Bold);
+                this.QuestionMark.Visible = false;
+                this.BackPanel.BackColor = SystemColors.ControlLight;
+                this.Label.Dock = DockStyle.None;
+                this.Label.Location = new Point(Label.Location.X, Label.Location.Y + (Label.Size.Height / 2));
+                this.BackPanel.Dock = DockStyle.Top;
+
+
+
+            }
+
         }
 
 
