@@ -26,7 +26,8 @@ namespace Editor.Services.BinderService.Mapping
             capFunction = other.capFunction;
             capParms = other.capParms;
             FieldSet_Text = other.FieldSet_Text;
-            GroupMembers = new List<string>(other.GroupMembers);
+            GroupMembers = new List<string>(other.GroupMembers ?? new List<string>() { " " });
+            FieldFlags = other.FieldFlags;
         }
 
         public bool DoBind;
@@ -34,6 +35,7 @@ namespace Editor.Services.BinderService.Mapping
         public string FieldSet_Name;
         public string FieldSet_Text;
         public Type FieldSet_FieldType;
+        public FieldFlags FieldFlags;
 
         public Type TargetVariable_Type;
         public string TargetVariable_Name;

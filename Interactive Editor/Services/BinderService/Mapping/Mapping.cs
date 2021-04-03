@@ -1,4 +1,6 @@
-﻿using System;
+﻿using Editor.Options;
+using Editor.Options.Attributes;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -44,9 +46,47 @@ namespace Editor.Services.BinderService.Mapping
         }
 
 
-        internal static FieldInfo[] ApplyFilter(Type T)
+        public static MapObject CreateTypoToInspectorFieldMapping<T>(BindingConfigurator configurator, BindingFilter filter = null)
         {
+            filter = filter ?? new BindingFilter();
+            if (GlobalOptions.RootRequireAttrTypeSafeLock || GlobalOptions.AlwaysRequireAttrTypeSafeLock)
+            {
+                var attr = typeof(T).GetCustomAttribute(typeof(TypeSafeLock));
+
+                if (attr is TypeSafeLock tsl)
+                {
+                    filter.Values = tsl.TargetFields;
+                }
+                else
+                {
+                    Console.WriteLine("TypeSafeLock attribute is required");
+                    throw new Exception();
+                }
+            }
+
+            var filtredVars = ApplyFilter(typeof(T), filter);
+            var mappedVars = ApplyMapping(filtredVars, configurator);
+            var typeResolvedVars = ResolveTypes(mappedVars);
+            return new MapObject(typeResolvedVars);
+        }
+
+
+        internal static FieldInfo[] ApplyFilter(Type T, BindingFilter filter = null)
+        {
+            filter = filter ?? new BindingFilter() { Values = new[] { "" }, FilterType = FilterType.Blacklist };
             var newTargetList = new List<FieldInfo>(T.GetFields());
+
+
+
+
+            if (filter.FilterType.ToString().Equals("Blacklist"))
+                ApplyBlacklist();
+            else if(filter.FilterType.ToString().Equals("Whitelist"))
+                ApplyWhitelist();
+            
+            
+                
+            
 
 
             int c = newTargetList.Count;
@@ -54,17 +94,41 @@ namespace Editor.Services.BinderService.Mapping
             for (int i = 0; i < c; i++)
             {
                 FieldInfo fi = newTargetList[i];
-                if (AvailClass(fi.FieldType))
+                if (AvailClass(fi) )
                 {
                     List<FieldInfo> ToAdd = new List<FieldInfo>();
                     AddNestedMembers(fi, ToAdd, maxTries);
                     newTargetList.InsertRange(i + 1, ToAdd);
 
-
                 }
             }
 
+            for (int i = 0; i < newTargetList.Count; i++)
+                if (!CheckTypeSafeLockAttr(newTargetList[i]))
+                    newTargetList.RemoveAt(i--);
+
             return newTargetList.ToArray();
+
+            void ApplyBlacklist()
+            {
+                for (int c2 = 0; c2 < newTargetList.Count; c2++)
+                    foreach (string s in filter.Values)
+                        if (newTargetList[c2].Name.Equals(s))
+                            newTargetList.RemoveAt(c2--);
+            }
+            void ApplyWhitelist()
+            {
+                for (int c2 = 0; c2 < newTargetList.Count; c2++)
+                {
+                    bool isInWhitelist = false;
+                    foreach (string s in filter.Values)
+                        if (newTargetList[c2].Name.Equals(s))
+                            isInWhitelist = true;
+                    if (!isInWhitelist)
+                        newTargetList.RemoveAt(c2--);
+
+                }
+            }
 
             void AddNestedMembers(FieldInfo finfo, List<FieldInfo> _list, int tries)
             {
@@ -74,7 +138,8 @@ namespace Editor.Services.BinderService.Mapping
                 {
                     var ftype = nestedTypeInfos[j].FieldType;
                     _list.Add(nestedTypeInfos[j]);
-                    if (AvailClass(nestedTypeInfos[j].FieldType))
+
+                    if (AvailClass(nestedTypeInfos[j]))
                     {
                         if (tries >= 0)
                             AddNestedMembers(nestedTypeInfos[j], _list, tries - 1);
@@ -108,11 +173,12 @@ namespace Editor.Services.BinderService.Mapping
                 }
 
             }
+            
             try
             {
-                
+
                 FTypeToControlMapping?.Invoke(new MapHandler(map));
-                
+
             }
             catch (Exception ex)
             {
@@ -149,7 +215,7 @@ namespace Editor.Services.BinderService.Mapping
                     continue;
                 }
 
-                if (AvailClass(bindingArgs.TargetVariable_Type))
+                if (AvailClass(bindingArgs.TargetVariable_FieldInfo))
                 {
                     int gsize = 0;
                     List<string> members = new List<string>();
@@ -178,11 +244,34 @@ namespace Editor.Services.BinderService.Mapping
 
 
 
-
-
-
-        public static bool AvailClass(Type t)
+        internal static bool CheckTypeSafeLockAttr(FieldInfo fi)
         {
+            Type t = fi.FieldType;
+            if (t.IsClass && GlobalOptions.AlwaysRequireAttrTypeSafeLock)
+            {
+                var tsl = t.GetCustomAttribute<TypeSafeLock>();
+                if (tsl == null)
+                {
+                    Console.WriteLine($"Missing TypeSafeAttr at: {fi.Name}[{fi.FieldType}] ");
+                    return false;
+                }
+                else if (!tsl.IsEnabled)
+                {
+                    Console.WriteLine($"TypeSafeAttr is locked at: {fi.Name}[{fi.FieldType}] ");
+                    return false;
+                }
+            }
+
+
+            return true;
+        }
+
+
+        public static bool AvailClass(FieldInfo fi)
+        {
+            Type t = fi.FieldType;
+            if (!CheckTypeSafeLockAttr(fi))
+                return false;
             return t.IsClass &&
                    t != typeof(string) &&
                    t != typeof(String) &&

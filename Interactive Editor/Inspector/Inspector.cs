@@ -9,6 +9,7 @@ using System.Drawing;
 using System.Reflection;
 using System.Windows.Forms;
 using static Editor.Modifiers;
+using Editor.Options;
 
 namespace Editor
 {
@@ -43,8 +44,9 @@ namespace Editor
 
         #region Ctror and initialization methods
         
-        private Inspector(Type _T, string name, Point location, Size size, Configurator _configurator = null)
+        private Inspector(Type _T, string name, Point location, Size size, Configurator _configurator = null, InspectorOptions opt = null)
         {
+            Options = opt ?? new InspectorOptions();
             T = _T;
             Name = name;
             Location = new Point(location.X,location.Y);
@@ -53,17 +55,18 @@ namespace Editor
             Initialize();
         }
 
-        public static Inspector Build<T>(string name, Point location, Size size, Configurator configurator = null)
+        public static Inspector Build<T>(string name, Point location, Size size, Configurator configurator = null, InspectorOptions opt = null)
         {
-            return new Inspector(typeof(T), name, location, size, configurator);
+            return new Inspector(typeof(T), name, location, size, configurator, opt);
         }
 
-        public static Inspector Build(string name, Point location, Size size, Configurator configurator = null)
+        public static Inspector Build(string name, Point location, Size size, Configurator configurator = null, InspectorOptions opt = null)
         {
-            return new Inspector(null, name, location, size, configurator);
+            return new Inspector(null, name, location, size, configurator, opt);
         }
 
 
+        
 
         private void Initialize()
         {            
@@ -85,6 +88,8 @@ namespace Editor
             Scroll += new ScrollEventHandler(this.OnScroll);
 
             BackPanel.MouseWheel += MouseWheel;
+            BackPanel.Resize += new EventHandler(this.OnResize);
+
 
             CFlags = Config.controlFlags;
             TypeBinderMode = Config.typeBinderMode;
@@ -259,11 +264,19 @@ namespace Editor
         protected Inspector _PrevPage;
         protected List<Fieldset> _Fields = new List<Fieldset>();
 
+        protected InspectorOptions _Options;
+
         #endregion
 
 
 
         #region Properties implementation
+
+        public InspectorOptions Options
+        {
+            get => _Options;
+            protected set => _Options = value;
+        }
 
         public List<Fieldset> Fields
         {
@@ -472,17 +485,23 @@ namespace Editor
                     if (i != 0)
                         Fields[i].BackPanel.Location = new Point(Fields[i].BackPanel.Location.X, Fields[i].BackPanel.Location.Y + delta);
                 }
-                    
-            
-            
-
-
-
-
 
 
         }
-
+        private void OnResize(object sender, EventArgs e)
+        {
+            if (Options.AutoWidth)
+            {
+                for (int i = 0; i < Fields.Count; i++)
+                {
+                    Fieldset f = Fields[i];
+                    f.BackPanel.Size = new Size(BackPanel.Width, f.BackPanel.Height);
+                    var sx = f.BackPanel.Size.Width - f.Field.Width - Options.Margins.Right;
+                    sx = sx - Options.NestedTypeXOffset * f.GroupFieldInfo.Count;
+                    f.Field.Location = new Point(sx, f.Field.Location.Y);
+                }
+            }
+        }
 
 
         private void OnVisibleChanged(object sender, EventArgs e = null)

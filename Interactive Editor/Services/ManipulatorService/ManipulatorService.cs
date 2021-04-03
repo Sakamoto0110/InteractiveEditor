@@ -199,7 +199,7 @@ namespace Editor.Services
                 BindingArgs args = argsArr[i];
                 
                 
-                AddField(args.FieldSet_FieldType, args.FieldSet_Name);
+                AddField(args.FieldSet_FieldType, args.FieldSet_Name, args.FieldFlags);
                 var f = FieldLocator.LocateLast();
                 f.Label.Text = args.FieldSet_Text ?? args.FieldSet_Name;
 

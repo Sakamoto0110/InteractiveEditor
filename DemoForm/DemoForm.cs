@@ -13,9 +13,11 @@ using Editor;
 using Editor.Controller;
 using Editor.Fields;
 using Editor.Misc;
+using Editor.Options;
 using Editor.Services;
 using Editor.Services.BinderService.Mapping;
 using MyEditorControl.TestObjects;
+using static Editor.Modifiers;
 using static Editor.Services.BindingService;
 
 namespace MyEditorControl
@@ -63,11 +65,55 @@ namespace MyEditorControl
         }
         public DemoForm()
         {
-            Inspector = InspectorController.BuildInspector<Foo>("Foo", new Point(10, 50), new Size(250, 400),
+            Editor.Options.GlobalOptions.RootRequireAttrTypeSafeLock = true;
+            InspectorOptions options = new InspectorOptions()
+            {
+                CreateOwnWindow = true,
+                DockStyle = DockStyle.Fill,
+                Name = "Foo",
+                Location = new Point(10,50),
+                Size = new Size(250,400),
+                CanCollapse = true,                
+            };
+            
+            
+
+
+
+
+
+
+
+
+
+            
+            Inspector = InspectorController.BuildInspector<Foo>(options,
                 new BindingConfigurator((map) =>
                 {
+                    map.Modify("x", (ref BindingArgs args) => 
+                    {
+                        args.FieldFlags = FieldFlags.UseHSliderControl;
+                        args.capFunction = ONLY_NUMBERS + POSITIVE_NUMBERS;
+                        args.capParms = new[] { "3" };
+                        args.Post = (fs) =>
+                        {
+                            fs.LabelText = "Renamed X";
+                        };
+                    });
                 }));
             
+
+
+
+
+
+
+
+
+
+
+
+
             InitializeComponent();
             init();
             Init_EXECUTE_T0();

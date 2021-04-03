@@ -1,4 +1,5 @@
-﻿using Editor.Services;
+﻿using Editor.Options;
+using Editor.Services;
 using Editor.Services.BinderService.Mapping;
 using System;
 using System.Collections.Generic;
@@ -30,6 +31,7 @@ namespace Editor.Controller
 
         public IInvokerService Invoker => MyInspector.ServiceProvider.Request<InvokerService>();
 
+        private Form OwnerForm;
 
         private InspectorController()
         {
@@ -61,7 +63,30 @@ namespace Editor.Controller
 
             
         }
-        private Form OwnerForm;
+        
+        public static InspectorController BuildInspector<T>(InspectorOptions options, BindingConfigurator activeConfigurator)
+        {
+            var inspector = new InspectorController()
+            {
+                MyInspector = Inspector.Build<T>(options.Name, options.Location, options.Size, opt: options),
+            };
+            var map = Mapping.CreateTypoToInspectorFieldMapping<T>(activeConfigurator, options.BindingFilter);
+            inspector.Modify.BuildFieldsForTypeByMapping(map);
+            inspector.Binder.BindToTypo(map);
+            if (options.CreateOwnWindow)
+            {
+                inspector.AttatchToWindow(new Form() 
+                {
+                    Visible = true,
+                    Text = $"Inspecting: \"{options.Name}\" ",
+                    ShowIcon = false,
+
+                });
+                inspector.MyInspector.BackPanel.Dock = options.DockStyle;
+            }
+            return inspector;
+        }
+
         public void AttatchToWindow(Form owner)
         {
             if(OwnerForm == null)
@@ -69,6 +94,10 @@ namespace Editor.Controller
                 MyInspector.OwnerForm = owner;
                 owner.Controls.Add(MyInspector.BackPanel);
                 OwnerForm = owner;
+            }
+            else
+            {
+                Console.WriteLine("Owner window already exists, dettatch old window before attatching to a new window.");
             }
             
         }

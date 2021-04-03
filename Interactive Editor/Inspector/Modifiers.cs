@@ -47,7 +47,7 @@ namespace Editor
 
             string str = $"{value}";
             string str2 = "";
-            int maxSize = Convert.ToInt32(((string[])args)[1]);
+            int maxSize = Convert.ToInt32(((string[])args)[0]);
             str2 = str;
             if (str.Length > maxSize)
             {

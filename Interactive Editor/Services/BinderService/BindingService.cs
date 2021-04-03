@@ -180,7 +180,9 @@ namespace Editor.Services
                     //fieldset.QuestionMark.Visible = false;
                     fieldset.GroupSize = bindingArgs.GroupSize;
                     fieldset.IsGroupOwner = true;
-                    fieldset.SetAsCollapseable();
+                    
+                    if(Owner.Options.CanCollapse)
+                        fieldset.SetAsCollapseable();
 
 
                     for (int j = 1; j < bindingArgs.GroupSize+1; j++)
@@ -199,7 +201,8 @@ namespace Editor.Services
     
                         
                         // Fix posX of fields/labels
-                        var offX = (fs.GroupFieldInfo.Count * 10);
+
+                        var offX = (fs.GroupFieldInfo.Count * Owner.Options.NestedTypeXOffset);
                         fs.AnchorPoint = new Point(fs.BackPanel.Location.X + offX, fs.BackPanel.Location.Y);
                         fs.BackPanel.Width -= offX;
                         fs.Field.Location = new Point(fs.Field.Location.X - offX, fs.Field.Location.Y);

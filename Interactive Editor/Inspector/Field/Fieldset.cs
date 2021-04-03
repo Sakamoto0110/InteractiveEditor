@@ -169,6 +169,7 @@ namespace Editor.Fields
             BackPanel.Location = new Point(_AnchorPoint.X + Owner.Margins.Left, _AnchorPoint.Y + Owner.Margins.Top);            
             BackPanel.Parent = Owner.BackPanel;
             BackPanel.BringToFront();
+            //BackPanel.BackColor = Color.LightBlue;
             //
             // Label
             //

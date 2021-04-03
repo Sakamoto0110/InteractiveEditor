@@ -76,6 +76,11 @@
     <Compile Include="Misc\Separator.cs">
       <SubType>Component</SubType>
     </Compile>
+    <Compile Include="Options\Attributes\MemberSafeLock.cs" />
+    <Compile Include="Options\Attributes\TypeSafeLock.cs" />
+    <Compile Include="Options\BindingFilter.cs" />
+    <Compile Include="Options\GlobalOptions.cs" />
+    <Compile Include="Options\InspectorOptions.cs" />
     <Compile Include="Services\BinderService\IBindingService.cs" />
     <Compile Include="Services\BinderService\BindingService.cs" />
     <Compile Include="Services\BinderService\Mapping\BindingArgs.cs" />
